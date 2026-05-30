@@ -41,3 +41,31 @@ Add Constraint Fk_Episodios_Series_IdSerie
 Foreign Key (IdSerie)
 References Series (IdSerie)
 Go
+
+--Aprofundando modelagem do banco SeriesDB--
+
+Create Table Generos(
+IdGenero Int Primary Key Identity(1,1),
+NomeGenero VarChar(20) Not Null
+)
+Go
+--Criando a primeira tabela de relacionamento SeriesGeneros--
+Create Table SeriesGeneros (
+IdGenero Int Not Null,
+IdSerie Int Not Null,
+Primary Key (IdGenero, IdSerie)
+)
+Go
+
+--Fazendo a ligação das tabelas com FKs--
+Alter Table SeriesGeneros
+Add Constraint FK_SeriesGeneros_Series
+Foreign Key (IdSerie)
+References Series (IdSerie)
+Go
+
+Alter Table SeriesGeneros
+Add Constraint FK_SeriesGeneros_Generos
+Foreign Key (IdGenero)
+References Generos (IdGenero)
+Go
