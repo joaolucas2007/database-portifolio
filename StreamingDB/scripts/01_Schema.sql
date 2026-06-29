@@ -80,3 +80,25 @@ IdPlataforma Int Not Null
 )
 Go
 
+--Criando a tabela de ligação FilmesGeneros representando relação N para N--
+Create Table FilmesGeneros 
+(
+IdFilme Int Not Null,
+IdGenero Int Not Null
+Primary Key (IdFilme, IdGenero)
+)
+Go
+
+--Fazendo ligação da tabela FilmesGeneros com FKs--
+Alter Table FilmesGeneros
+Add Constraint Fk_FilmesGeneros_Filmes_IdFilme Foreign Key (IdFilme)
+References Filmes (IdFilme
+)
+Go
+
+Alter Table FilmesGeneros
+Add Constraint Fk_FilmesGeneros_Generos_IdGenero Foreign Key (IdGenero)
+References Generos (IdGenero)
+Go
+
+
