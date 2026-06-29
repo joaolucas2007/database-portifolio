@@ -1,7 +1,7 @@
-Create Database SeriesDB
+Create Database StreamingDB
 Go
 
-Use SeriesDB
+Use streamingDB
 Go				--Criação Do banco de dados SeriesDB--
 
 
@@ -69,3 +69,14 @@ Add Constraint FK_SeriesGeneros_Generos
 Foreign Key (IdGenero)
 References Generos (IdGenero)
 Go
+
+--Iniciando a criação da tabela Filmes--
+Create Table Filmes (
+Idfilme Int Primary Key Identity(1,1),
+TituloFilme VarChar (50) Not Null,
+DataLancamento Date Not Null Check (DataLancamento >= '1940-01-01'), --Só permite cadastrar filmes lançados após 1940
+NotaImdb Decimal (3,1) Not Null Check (NotaImdb Between 0.0 And 10.0), --Só permite Notas dos filmes que fiquem entre 0.0 e 10.0
+IdPlataforma Int Not Null
+)
+Go
+
