@@ -1,4 +1,4 @@
-Use SeriesDB
+Use StreamingDB
 Go
 
 --Inserindo dados na tabela Plataforma
@@ -211,3 +211,18 @@ Where IdSerie = 17		--Novamente removendo primeiro da tabela filha para depois r
 Delete From Series
 Where IdSerie = 17
 Go
+
+
+--inseirindo dados na tabel assinatura
+
+Insert Into Assinaturas (TipoAssinatura, ValorAssinatura, QualidadeAssinatura, QuantidadeTela, CobrancaAssinatura, IdPlataforma)
+Values	('Padrão', 39.90, 'FULL HD',2,'Mensal',1),
+		('Premium',59.90,'4K',4,'Mensal',1),
+		('Standard',27.90,'HD',2,'Mensal',2),
+		('Premium',43.90,'4K',4,'Mensal',2),
+		('Prime',19.90,'FULL HD',3,'Mensal',3),
+		('Premium',34.90,'4K',4,'Mensal',4);
+Go
+
+--Fazendo uma população de dados maior no Banco tornando consultas mais realistas
+
