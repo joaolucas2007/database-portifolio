@@ -226,3 +226,161 @@ Go
 
 --Fazendo uma população de dados maior no Banco tornando consultas mais realistas
 
+--adicionando mais plataformas 
+Insert Into Plataformas (NomePlataforma)
+Values ('Max'), ('Apple Tv+'), ('GloboPlay'), ('Star+')
+Go
+--Inserindo mais Series
+Insert Into Series (TituloSerie, DataLancamento, NotaImdb, IdPlataforma)
+Values ('Severance','2022-02-18',8.7,6),
+('Ted Lasso','2020-08-14',8.8,6),
+('The Bear','2022-06-23',8.5,8),
+('The Penguin','2024-09-19',8.8,5),
+('Chernobyl','2019-05-06',9.3,5),
+('True Detective','2014-01-12',8.9,5),
+('The Sopranos','1999-01-10',9.2,5),
+('Ozark','2017-07-21',8.5,1),
+('Black Mirror','2011-12-04',8.7,1),
+('The Queen''s Gambit','2020-10-23',8.5,1);
+Go
+
+--Inserindo mais episodios
+
+Insert Into Episodios
+(NumeroEpisodio, NumeroTemporada, TituloEpisodio, DuracaoEpisodio, IdSerie)
+Values
+
+(1,1,'Good News About Hell',57,18),
+(2,1,'Half Loop',56,18),
+(3,1,'In Perpetuity',57,18),
+
+(1,1,'Pilot',35,19),
+(2,1,'Biscuits',30,19),
+(3,1,'Trent Crimm',30,19),
+
+(1,1,'System',45,20),
+(2,1,'Hands',31,20),
+(3,1,'Brigade',33,20),
+
+(1,1,'After Hours',67,21),
+(2,1,'Inside Man',58,21),
+
+(1,1,'1:23:45',59,22),
+(2,1,'Please Remain Calm',61,22),
+
+(1,1,'The Long Bright Dark',58,23),
+(2,1,'Seeing Things',56,23),
+
+(1,1,'The Sopranos',60,24),
+(2,1,'46 Long',52,24),
+
+(1,1,'Sugarwood',60,25),
+(2,1,'Blue Cat',58,25),
+
+(1,1,'The National Anthem',44,26),
+(2,1,'Fifteen Million Merits',61,26),
+
+(1,1,'Openings',56,27),
+(2,1,'Exchanges',48,27);
+Go
+
+
+--Inserindo filmes
+Insert Into Filmes
+(TituloFilme, DataLancamento, NotaImdb, IdPlataforma)
+Values
+
+('Oppenheimer','2023-07-21',8.3,5),
+('Duna','2021-10-22',8.0,5),
+('Duna Parte 2','2024-03-01',8.5,5),
+('Interestelar','2014-11-07',8.7,5),
+('Batman','2022-03-04',7.8,5),
+
+('Resgate','2020-04-24',6.8,1),
+('Alerta Vermelho','2021-11-12',6.3,1),
+('Não Olhe Para Cima','2021-12-24',7.2,1),
+
+('Soul','2020-12-25',8.0,2),
+('Divertida Mente 2','2024-06-14',7.8,2),
+
+('Top Gun Maverick','2022-05-27',8.2,4),
+('Missão Impossível Acerto de Contas','2023-07-12',7.7,4);
+Go
+
+--Inserindo dados na tabela de relacionamento FilmeGeneros
+Insert Into FilmesGeneros
+(IdFilme, IdGenero)
+Values
+
+(1,1),
+(1,8),
+
+(2,7),
+(2,12),
+
+(3,7),
+(3,12),
+
+(4,7),
+(4,1),
+
+(5,3),
+
+(6,3),
+(6,12),
+
+(7,3),
+(7,2),
+
+(8,2),
+(8,1),
+
+(9,2),
+(9,6),
+
+(10,2),
+(10,6),
+
+(11,3),
+(11,12),
+
+(12,3),
+(12,4);
+Go
+
+
+--Inserindo dados na tabela de relacionamentos SeriesGeneros
+Insert Into SeriesGeneros
+(IdGenero, IdSerie)
+Values
+
+(7,18),
+(4,18),
+
+(2,19),
+(1,19),
+
+(1,20),
+(2,20),
+
+(9,21),
+(1,21),
+
+(8,22),
+(1,22),
+
+(9,23),
+(11,23),
+
+(9,24),
+(1,24),
+
+(9,25),
+(1,25),
+
+(7,26),
+(4,26),
+
+(1,27),
+(8,27);
+Go
