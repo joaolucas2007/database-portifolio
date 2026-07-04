@@ -23,32 +23,39 @@ Cada projeto representa uma etapa da minha evolução técnica, focando na aplic
 
 ## 📂 Projetos
 
-### 📌 SeriesDB
+# StreamingDB
 
-Primeiro projeto de banco de dados desenvolvido para praticar conceitos fundamentais de SQL Server.
+Projeto desenvolvido para praticar modelagem de banco de dados relacional e consultas SQL utilizando SQL Server.
 
-**Principais tópicos praticados:**
+## Sobre o Projeto
 
-* Criação de tabelas
-* Chaves primárias e estrangeiras
-* Relacionamentos entre entidades
-* Constraints
-* Consultas SQL
-* Simulação de cenários de negócio
-
-Status: Em desenvolvimento
+A StreamingDB simula um sistema de gerenciamento de séries e filmes de streaming, permitindo o cadastro e a análise de informações relacionadas às produções e suas plataformas.
+O projeto foi criado com o objetivo de consolidar conhecimentos em modelagem de dados, relacionamentos entre tabelas e desenvolvimento de consultas SQL.
+o
+Status: V3 do projeto
 
 ---
 
 ## 🛠️ Tecnologias Utilizadas
 
 * SQL Server
-* SQL Server Management Studio (SSMS)
+* T-SQL
 * Git
 * GitHub
-* Python (em estudos)
-
 ---
+
+## Conceitos Aplicados
+
+* Modelagem Relacional
+* Primary Key
+* Foreign Key
+* Identity
+* Unique
+* Check Constraint
+* Joins
+* Group By
+* Order By
+* Funções de Agregação
 
 ## 📚 Atualmente Estudando
 
@@ -68,12 +75,11 @@ Busco desenvolver uma base sólida em dados e programação para conquistar minh
 
 ## 📫 Contato
 
-* LinkedIn: ()
+* LinkedIn: (www.linkedin.com/in/joão-lucas-freire-da-silva-a1b139420)
 * Email: (joao.lfs2000p@gmail.com)
 
 Obrigado por visitar meu repositório.
 
-## 🌐 Informações de Contato
-```text
+
 
 
