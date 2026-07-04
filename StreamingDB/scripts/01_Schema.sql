@@ -118,7 +118,7 @@ CobrancaAssinatura VarChar(10) Not Null Check (CobrancaAssinatura In('Mensal', '
 IdPlataforma Int Not Null,
 Unique (TipoAssinatura, IdPlataforma) --Não permite que a mesma plataforma tenha a mesma assinatura
 )
-
+Go
 --Adicionando fk em Assinaturas
 Alter Table Assinaturas
 Add Constraint Fk_Assinaturas_Plataformas_IdPlataforma Foreign Key (IdPlataforma)

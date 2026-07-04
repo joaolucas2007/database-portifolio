@@ -245,7 +245,7 @@ Permite criar colunas condicionais baseadas nos valores das linhas.*/
 Select P.NomePlataforma, A.TipoAssinatura , A.ValorAssinatura,
 Case 
     When ValorAssinatura <= 25.00 Then 'Econômico'
-    When ValorAssinatura > 25.00 And <= 45.00 Then 'Intermediário'
+    When ValorAssinatura > 25.00 And ValorAssinatura <= 45.00 Then 'Intermediário'
     Else 'Premium'
 End As CategoriaPreco
 From Assinaturas A
