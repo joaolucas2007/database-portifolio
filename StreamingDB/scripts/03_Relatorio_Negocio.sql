@@ -1,4 +1,4 @@
-Use SeriesDB
+Use StreamingDB
 Go
 
 -- Agora vamos pesquisar relatórios de possíveis situações de negócios --
@@ -193,4 +193,180 @@ On G.IdGenero = SG.IdGenero
 Group By G.NomeGenero
 Having (Count(SG.IdSerie)) > 2
 Order By TotalSerie Asc
+Go
+
+
+--Fazendo mais consultas agora com a tabela assinatura e a tabela filmes 
+--Aprendendo novos conceitos
+
+/*Cenário: O time de UX quer uma tela de "Busca Geral" onde o usuário digita um termo e o sistema traz tudo o que tem no catálogo, 
+sejam filmes ou séries, com suas respectivas notas e plataformas.*/
+
+
+/*Conceito Novo: UNION ALL — Une o resultado de duas consultas diferentes em uma única tabela virtual. 
+Para funcionar, as duas consultas precisam ter a mesma quantidade de colunas e tipos de dados compatíveis.*/
+
+Select 'Series' As Tipo, S.TituloSerie, S.NotaImdb, P.NomePlataforma
+From Series S
+Inner Join Plataformas P
+On S.IdPlataforma = P.IdPlataforma
+
+Union All  --Une os dados em uma unica Coluna Tipo nesse caso se é Filme ou Serie
+
+Select 'Filmes' As Tipo, F.TituloFilme, F.NotaImdb, P.NomePlataforma
+From Filmes F
+Inner Join Plataformas P
+On F.IdPlataforma = P.IdPlataforma
+Go
+
+
+/*Cenário: O gerente de parcerias quer saber se existem plataformas cadastradas no sistema 
+que não possuem nenhum filme vinculado a elas,para entender
+se o contrato expirou ou se houve erro de cadastro. */
+
+/*Conceito Novo: LEFT JOIN e IS NULL — O LEFT JOIN traz todos os dados da tabela da esquerda (Plataformas),
+mesmo se não houver correspondência na tabela da direita (Filmes). Quando não há correspondência, 
+o SQL preenche os campos com NULL.
+Filtrando por Where F.IdFilme Is Null, encontramos os "buracos".*/
+
+Select P.NomePlataforma, F.TituloFilme
+From Plataformas P
+Left Join Filmes F
+On P.IdPlataforma = f.IdPlataforma
+Where F.IdFilme Is Null
+Go
+
+/*Cenário: O time de finanças quer um relatório classificando os planos de assinatura em faixas de 
+preço: "Econômico" (até R$ 25), "Intermediário" (até R$ 45) e "Premium" (acima disso).*/
+
+/*Conceito Novo: CASE WHEN — É o "IF/ELSE" (se/senão) do SQL. 
+Permite criar colunas condicionais baseadas nos valores das linhas.*/
+
+Select P.NomePlataforma, A.TipoAssinatura , A.ValorAssinatura,
+Case 
+    When ValorAssinatura <= 25.00 Then 'Econômico'
+    When ValorAssinatura > 25.00 And <= 45.00 Then 'Intermediário'
+    Else 'Premium'
+End As CategoriaPreco
+From Assinaturas A
+Inner Join Plataformas P
+On A.IdPlataforma = P.IdPlataforma
+Order By P.NomePlataforma
+Go
+
+/*Cenário: A equipe de aquisição de conteúdo quer saber quantos títulos de Filmes
+existem para cada gênero,mas só quer ver os gêneros que possuem filmes cadastrados.*/
+
+/*O que estou exercitando: Relacionamento N para N juntando 3 tabelas
+(Generos -> FilmesGeneros -> Filmes).*/
+
+Select G.NomeGenero, Count(F.IdFilme)As TotalFilmes
+From FilmesGeneros FG
+Inner Join Filmes F
+On FG.IdFilme = F.IdFilme
+Inner Join Generos G
+On FG.IdGenero = G.IdGenero
+Group By G.NomeGenero
+Order By G.NomeGenero Desc
+Go
+
+/*Cenário: A diretoria quer uma lista exclusiva de filmes 
+que possuem a nota IMDb maior do que a média de todos os filmes do banco de dados.*/
+
+/*Conceito Novo: Subquery (Subconsulta) — É uma consulta dentro de outra consulta. Aqui,
+usamos uma subquery no Where para calcular dinamicamente a média global primeiro, 
+e depois a consulta principal usa esse número para filtrar.*/
+
+Select TituloFilme, NotaImdb
+From Filmes
+Where NotaImdb  > (Select Avg(NotaImdb) From Filmes)
+Order By NotaImdb Desc
+Go
+
+/*O Cenário: A diretoria quer identificar quais plataformas cobram por suas assinaturas um valor médio maior
+do que a média de preço de todas as assinaturas do mercado.
+Eles só querem ver o nome da plataforma e a média de preço dela.*/
+
+/* O que será praticado: INNER JOIN, GROUP BY, HAVING
+e uma Subquery dentro do HAVING.*/
+
+Select P.NomePlataforma, Avg(A.ValorAssinatura) As ValorTotal
+From Plataformas P
+Inner Join Assinaturas A
+On P.IdPlataforma = A.IdPlataforma
+Group By P.NomePlataforma
+Having (Avg(A.ValorAssinatura) > (Select Avg(ValorAssinatura) From Assinaturas))
+Order By P.NomePlataforma Desc
+Go
+
+/*O Cenário: O time de análise de dados quer saber quais gêneros de séries acumulam mais de 200 minutos
+de conteúdo total na plataforma, para entender onde os usuários passam mais tempo.
+O relatório deve mostrar o nome do gênero e o tempo total em minutos.*/
+
+/*O que será particado: Junção de 4 tabelas
+(Generos, SeriesGeneros, Series, Episodios), SUM(), GROUP BY e HAVING.*/
+
+Select G.NomeGenero,  Convert (VarChar,Sum(E.DuracaoEpisodio)) + ' Minutos' As TempoTotal --Usando Convert somente para na hora da busca ficar melhor visualmente
+From Generos G
+Inner Join SeriesGeneros SG
+On G.IdGenero = SG.IdGenero
+Inner Join Series S
+On SG.IdSerie = S.IdSerie
+Inner Join Episodios E
+On S.IdSerie = E.IdSerie
+Group By G.NomeGenero
+Having Sum(E.DuracaoEpisodio) > 200
+Order By G.NomeGenero Asc
+Go
+
+/*O Cenário: O gerente de infraestrutura quer um relatório que liste o nome de cada plataforma e duas colunas personalizadas: 
+uma chamada Planos_4K  (quantos planos em 4K ela oferece) e outra chamada Outros_Planos (quantos planos em HD ou Full HD ela oferece).*/
+
+/*O que Será praticado: INNER JOIN, GROUP BY e CASE de forma avançada dentro da função COUNT() ou SUM().*/
+
+Select P.NomePlataforma, 
+Sum(Case When A.QualidadeAssinatura = '4K' Then 1 Else 0 End ) As Planos_4k, --Usando Case dentro do sum, Crio uma situação que se for verdadeira 4K soma 1 senão soma 0 
+Sum (Case When A.QualidadeAssinatura <> '4K' Then 1 Else 0 End) As  Outros_Planos
+From Plataformas P   
+Inner Join Assinaturas A       
+On P.IdPlataforma = A.IdPlataforma
+Group By P.NomePlataforma
+Go
+
+
+/* O Cenário: Este é para testar seus limites! O time de marketing quer listar as séries que possuem 
+uma nota IMDb maior do que a média da plataforma   onde ela é exibida. Exemplo: Uma série da Netflix só será
+exibida se a nota dela for maior que a média de todas as séries da Netflix.
+
+O que será praticado : Subquery Correlacionada (onde a consulta interna depende de uma coluna da consulta externa).*/
+
+Select S.TituloSerie, S.IdPlataforma, S.NotaImdb
+From Series s
+Where NotaImdb > (Select Avg(NotaImdb) From Series S2 Where S2.IdPlataforma = S.IdPlataforma) --Usando essa subquery para trazzer a media por plataforma, não a média geral dos ids
+Go
+
+/* O Cenário: A diretoria precisa de um relatório estratégico de  nível. 
+Eles querem saber qual plataforma possui o filme com a maior nota de todo o banco de dados 
+E qual plataforma possui a série com a maior nota de todo o banco de dados. 
+O resultado final deve ser consolidado em uma única tabela contendo o
+Tipo ('Melhor Filme' ou 'Melhor Série'), o Nome da Plataforma,
+o Título da produção e a Nota correspondente.
+
+O que você vai praticar: Duas consultas complexas que unem tabelas,
+o uso da função MAX() em subconsultas para achar o registro topo de linha, 
+e o operador UNION ALL para juntar tudo. */
+
+Select 'Melhor Serie' As Tipo, P.NomePlataforma, S.TituloSerie, S.NotaImdb
+From Series S
+Inner Join Plataformas P
+On S.IdPlataforma = P.Idplataforma
+Where NotaImdb = (Select Max(NotaImdb) From Series)
+
+Union All
+
+Select 'Melhor Filme' As Tipo, P.NomePlataforma, F.TituloFilme, F.NotaImdb
+From Filmes F
+Inner Join Plataformas P
+On F.IdPlataforma = P.IdPlataforma
+Where F.NotaImdb = (Select Max(NotaImdb) From Filmes)
 Go
