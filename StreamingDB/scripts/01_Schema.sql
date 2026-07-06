@@ -1,8 +1,10 @@
+--Criação Do banco de dados StreamingDB--
 Create Database StreamingDB
 Go
 
+--Usando o StreamindDB nessa query
 Use streamingDB
-Go				--Criação Do banco de dados SeriesDB--
+Go				
 
 
 --Criação das Tabelas--
@@ -123,3 +125,36 @@ Go
 Alter Table Assinaturas
 Add Constraint Fk_Assinaturas_Plataformas_IdPlataforma Foreign Key (IdPlataforma)
 References Plataformas (IdPlataforma)
+Go
+
+--Criando a tabela Clientes e suas tabelas de relacionamentos 
+Create Table Clientes (
+IdCliente Int Primary Key Identity (1,1),
+NomeCliente VarChar(75) Not Null,
+EmailCliente VarChar(50) Not Null Unique,
+FormaPagamento VarChar (50) Not Null,
+DataCadastro Date Not Null --Representando a data que o cliente se cadastrou na plataforma
+)
+Go
+--Criando a tabela ClientesAssinaturas representando o relacionamento entre cliente e assinaturas--
+Create Table ClientesAssinaturas (
+IdClienteAssinatura Int Primary Key Identity (1,1),
+IdCliente Int Not Null,
+IdAssinatura Int Not Null,
+DataAssinatura Date Not Null,
+Unique(IdCliente, IdAssinatura, DataAssinatura) --Usando unique para permitir assinaturas no mesmo cliente e a mesma assinatura porém em datas diferentes
+)
+Go
+
+--Fazendo Alter Table para representar relacionamento N:N Clientes Assinaturas
+Alter Table ClientesAssinaturas
+Add constraint Fk_ClientesAssinaturas_Clientes_IdCliente
+Foreign Key (IdCliente)
+References Clientes (IdCliente)
+Go
+
+Alter Table ClientesAssinaturas
+Add Constraint Fk_ClientesAssinaturas_Assinaturas_IdAssinatura
+Foreign Key (IdAssinatura)
+References Assinaturas (IdAssinatura)
+Go
