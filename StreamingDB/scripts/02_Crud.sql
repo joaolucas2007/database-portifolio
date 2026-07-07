@@ -405,12 +405,31 @@ Select
     -- dateadd soma ou subtrai o tempo de uma data, o day nos informa que queremos mexer em dias não em meses nem em anos
     -- -abs significa que vamos subtrair ir para o passado
     --getdate a data de partida hoje 06/07/2026
-    From ( -- from significa que vamos pegar da tabela  numeros que est´usando o sys.object 
+    From ( -- from significa que vamos pegar da tabela  numeros que está usando o sys.object 
     Select Top 100 ROW_NUMBER() Over (Order By (Select Null)) As N
     -- order bby select null serve para o sql server ordenar sem gastar energia  tentando organizar as linhas 
-    --row_number funcionar para ir numerando as linhas das tabelas conforeme elas passam
+    --row_number funcionar para ir numerando as linhas das tabelas conforme elas passam
     --Select top 100 serve para dizer para o sql executar esses comando até chegar no número 100
     From sys.objects
 ) As Numeros    
 Go
 
+
+
+-- Inserindo dados na tabela ClientesAssinaturas
+--Fazendo a inserção usando a mesma lógica da tabela clientes, usando o que aprendi dos códigos novos.
+Insert Into ClientesAssinaturas (IdCliente, IdAssinatura, DataAssinatura)
+Select
+    Abs(CheckSum(NewId())) % 100 + 1 As IdCliente, --NewId me entrega um Guid aleatório, CheckSum transforma em número, e o Abs garante que seja positivo
+   Abs(CheckSum(NewId())) % (Select Count(IdAssinatura) From Assinaturas) + (Select Min(IdAssinatura) From Assinaturas), -- Usando duas subquery desse modo Vai cadastrar de acordo com os dados sendo pegos diretos da tabela
+    DateAdd (Day, -Abs(CheckSum(NewId())) % 730, GetDate()) As DataAssinatura -- Date add Somar ou subtrair o tempo de uma data o Day deixa claro que queremos mexer em dias não em meses nem em anos
+    -- usamos o -Abs indica que queremos subtrair ou seja ir para o passado Getdate indica a data de partida Hoje 07/07/2026
+From (
+Select top 150 ROW_NUMBER() Over (Order By (Select Null)) As N -- Top 150 para dizer ao sql server para ir até a linha 150, 
+From Sys.objects
+) As Numeros
+Go
+
+--Usando esse select descobri qual é a primeira a última e quantas assinaturas tem apartir dos ids
+Select Min(IdAssinatura) As Menor, Max(IdAssinatura) As Maior, Count(IdAssinatura) As Total 
+From Assinaturas
