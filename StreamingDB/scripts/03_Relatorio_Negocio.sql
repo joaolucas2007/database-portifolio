@@ -370,3 +370,81 @@ Inner Join Plataformas P
 On F.IdPlataforma = P.IdPlataforma
 Where F.NotaImdb = (Select Max(NotaImdb) From Filmes)
 Go
+
+/*Cenário: financeiro quer saber quanto cada plataforma fatura, somando o valor de todas as assinaturas ativas dos clientes.*/
+
+
+Select P.NomePlataforma, Sum(S.ValorAssinatura) As TotalPorPlataforma
+From Assinaturas S
+Inner Join Plataformas P
+On S.IdPlataforma = P.IdPlataforma
+Inner Join ClientesAssinaturas CS
+On CS.IdAssinatura = S.IdAssinatura
+Group By P.NomePlataforma
+Go
+
+/*Cenário: time de retenção quer saber quais clientes se cadastraram mas nunca assinaram nada (churn silencioso).*/
+Select C.IdCliente, C.NomeCliente, Cs.IdAssinatura
+From Clientes C
+Left Join ClientesAssinaturas CS
+On C.IdCliente = Cs.IdCliente
+Where Cs.IdAssinatura Is Null
+Go
+
+
+/*Cenário: financeiro quer saber se clientes de planos Premium preferem Pix, cartão ou boleto.*/
+
+Select C.NomeCliente, A.TipoAssinatura, C.FormaPagamento 
+From Clientes C
+Inner Join ClientesAssinaturas CS
+On C.IdCliente = CS.IdCliente
+Inner Join Assinaturas A
+On CS.IdAssinatura = A.IdAssinatura
+Where A.TipoAssinatura = 'Premium'
+Go
+
+/*Cenário: produtor quer saber qual plano tem mais clientes vinculados.*/
+
+Select  A.TipoAssinatura, Count(C.IdCliente) As QtndCliente
+From Clientes C
+Inner Join ClientesAssinaturas CS
+On C.IdCliente = CS.IdCliente
+Inner Join Assinaturas A
+On A.IdAssinatura = CS.IdAssinatura
+Group By A.TipoAssinatura
+Go
+
+
+/*Cenário: marketing quer identificar clientes fiéis que trocaram de plano ou assinaram mais de uma vez, pra campanha de fidelidade.*/
+
+Select C.IdCliente,count( A.TipoAssinatura) TotalAssinaturas
+From Clientes C
+Inner Join ClientesAssinaturas CS
+On C.IdCliente = CS.IdCliente
+Inner Join Assinaturas A
+On A.IdAssinatura = CS.IdAssinatura
+Group By C.IdCliente
+Having (Count(A.TipoAssinatura) > 1)
+Go
+
+/*Cenário: CS quer priorizar contato com clientes "esquecidos".*/
+Select NomeCliente, DataCadastro, CS.IdAssinatura
+From Clientes C
+Left Join ClientesAssinaturas CS
+On C.IdCliente = CS.IdCliente
+Where CS.IdCliente Is Null
+Order By DataCadastro Asc
+Go
+
+
+/*Cenário: financeiro quer saber se clientes de cartão gastam mais que os de boleto, em média.*/
+
+Select C.FormaPagamento, Convert(Decimal(6,2), Avg(A.ValorAssinatura)) As MediaAssinatura
+From Clientes C
+Inner Join ClientesAssinaturas CS
+On C.IdCliente = CS.IdCliente
+Inner Join Assinaturas A
+On A.IdAssinatura = CS.IdAssinatura
+Group By C.FormaPagamento
+Go
+
