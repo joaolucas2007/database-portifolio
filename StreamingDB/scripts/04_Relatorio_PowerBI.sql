@@ -3,10 +3,14 @@ Go
 --Esse arquivo SQL, é destinado apenas para realizar consultas que para desenvolver gráficos de negócios no POWER BI
 
 --1) Receita por plataforma 
-Select P.NomePlataforma, Sum(A.ValorAssinatura) As Receita
-From ClientesAssinaturas CS
-Inner Join Assinaturas A On CS.IdAssinatura = A.IdAssinatura
-Inner Join Plataformas P On A.IdPlataforma = P.IdPlataforma
+Select 
+    P.NomePlataforma, 
+    IsNull(Sum(A.ValorAssinatura), 0) As TotalPorPlataforma
+From Plataformas P
+Left Join Assinaturas A
+    On P.IdPlataforma = A.IdPlataforma
+Left Join ClientesAssinaturas CS
+    On CS.IdAssinatura = A.IdAssinatura
 Group By P.NomePlataforma
 Go --O go Só Funciona aqui no SQL SERVER, Na hora de importar para o power bi tiramos do código
 
