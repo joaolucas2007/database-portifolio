@@ -391,18 +391,6 @@ On C.IdCliente = Cs.IdCliente
 Where Cs.IdAssinatura Is Null
 Go
 
-
-/*Cenário: financeiro quer saber se clientes de planos Premium preferem Pix, cartão ou boleto.*/
-
-Select C.NomeCliente, A.TipoAssinatura, C.FormaPagamento 
-From Clientes C
-Inner Join ClientesAssinaturas CS
-On C.IdCliente = CS.IdCliente
-Inner Join Assinaturas A
-On CS.IdAssinatura = A.IdAssinatura
-Where A.TipoAssinatura = 'Premium'
-Go
-
 /*Cenário: produtor quer saber qual plano tem mais clientes vinculados.*/
 
 Select  A.TipoAssinatura, Count(C.IdCliente) As QtndCliente
@@ -448,3 +436,37 @@ On A.IdAssinatura = CS.IdAssinatura
 Group By C.FormaPagamento
 Go
 
+/*Cenário: produto quer saber quantos clientes estão em cada faixa (Econômico/Intermediário/Premium).*/
+
+Select 
+Case
+    When A.ValorAssinatura <= 25 Then 'Econômico'
+    When A.ValorAssinatura Between 25 And 45 Then 'Intermediário'
+    Else 'Premium'
+    End As Categoria,
+    Count(C.IdCliente)
+From Clientes C
+Inner Join ClientesAssinaturas CS
+On C.IdCliente = CS.IdCliente
+Inner Join Assinaturas A
+On A.IdAssinatura = CS.IdAssinatura
+Group By
+Case
+    When A.ValorAssinatura <= 25 Then 'Econômico'
+    When A.ValorAssinatura Between 25 And 45 Then 'Intermediário'
+    Else 'Premium'
+    End    
+Go
+
+
+/*Cenário: financeiro quer saber se clientes de planos Premium preferem Pix, cartão ou boleto.*/
+
+Select C.FormaPagamento, Count(C.IdCliente) As QntdClientes
+From Clientes C
+Inner Join ClientesAssinaturas CS
+On C.IdCliente = CS.IdCliente
+Inner Join Assinaturas A
+On CS.IdAssinatura = A.IdAssinatura
+Where A.TipoAssinatura = 'Premium'
+Group By C.FormaPagamento
+Go
