@@ -9,7 +9,7 @@ O projeto foi criado com o objetivo de consolidar conhecimentos em modelagem de 
 
 ## Diagrama Entidade-Relacionamento
 
-![DER](../diagrama/DER-StreamingDB-V3.png)
+![DER](../Imagens-DER-BI/DER-StreamingDB-V3.png)
 
 ## Tecnologias Utilizadas
 
@@ -17,6 +17,7 @@ O projeto foi criado com o objetivo de consolidar conhecimentos em modelagem de 
 * T-SQL
 * Git
 * GitHub
+* Power Bi
 
 ## Conceitos Aplicados
 
@@ -31,16 +32,27 @@ O projeto foi criado com o objetivo de consolidar conhecimentos em modelagem de 
 
 ## Estrutura do Projeto
 
-```text
 StreamingDB
 │
 ├── Scripts
 │   ├── 01_Schema_2.sql
 │   ├── 02_Crud_2.sql
 │   ├── 03_Relatorio_Negocio_2.sql
-│
-├── diagrama
+│   ├── 04_Relatorio_PowerBI.sql
+├── Imagens-DER-BI
 │   └── DER-StreamingDB-V3.png
-│
+│   ├── dashboard_01.png
 └── Readme
     └── README.md
+
+## Business Intelligence & Dashboard (Power BI)
+
+Para complementar a análise técnica dos scripts SQL, foi desenvolvido um painel interativo no Power BI conectado ao banco de dados `StreamingDB`. O objetivo é transformar as consultas de negócios em indicadores visuais e acionáveis (KPIs).
+
+## Indicadores Monitorados:
+* **Faturamento por Plataforma**: Soma das assinaturas ativas de clientes.
+* **Evolução Mensal**: Volume de novas assinaturas realizadas ao longo do tempo.
+* **Engajamento de Catálogo**: Nota média das séries filtradas por gênero.
+* **Perfil do Consumidor**: Distribuição das formas de pagamento preferidas pelos clientes.
+
+![Dashboard StreamingDB](../Imagens-DER-BI/dashboard_01.png)

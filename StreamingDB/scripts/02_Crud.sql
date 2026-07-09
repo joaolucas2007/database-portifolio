@@ -384,3 +384,52 @@ Values
 (1,27),
 (8,27);
 Go
+
+--Inserindo 100 Clientes usando novos NewId
+
+Insert Into Clientes (NomeCliente, EmailCliente, FormaPagamento, DataCadastro)
+Select 
+    'Cliente ' + CAST(N As VarChar(3)) As NomeCliente, --cast transforma o numero em varchar os clientes vão se chamar cliente1 até cliente100
+    'cliente' + CAST(N As VarChar(3)) + '@email.com' As EmailCliente, --mesma lógica agora o email será de cliente1@gmail.com até cliente100@gmail.com 
+    Case ABS(CHECKSUM(NEWID())) % 3 --new id gera um GUID aleatório, fazendo com que cada cliente tenha um ponto de partida aleatório
+    --checksum pega o id gerado pelo newid e transforma em valor numérico
+    --abs transforma o valor que for negativo em positivo
+    --usando o % 3 resto dividido por 3 sempre dara ou 0 ou 1 ou 2
+        When 0 Then 'Cartão de Crédito' --se for 0 cartão de crédito
+        When 1 Then 'Pix' -- se for 1 pix
+        Else 'Boleto' --se for nenhum deles boleto
+    End As FormaPagamento, -- são as três formas de pagamento possíveis nessa situação
+    DateAdd(Day, -ABS(CHECKSUM(NEWID())) % 730, GetDate()) As DataCadastro
+    -- % 730 vai cacular o codigo feito pelo newid que o checksum transformou em numero e o abs deixou positivo e dividir o resto por 730 
+    --730 é a quantidade de dias em 2 anos, limitando as datas de cadastro em até dois anos atrás
+    -- dateadd soma ou subtrai o tempo de uma data, o day nos informa que queremos mexer em dias não em meses nem em anos
+    -- -abs significa que vamos subtrair ir para o passado
+    --getdate a data de partida hoje 06/07/2026
+    From ( -- from significa que vamos pegar da tabela  numeros que está usando o sys.object 
+    Select Top 100 ROW_NUMBER() Over (Order By (Select Null)) As N
+    -- order bby select null serve para o sql server ordenar sem gastar energia  tentando organizar as linhas 
+    --row_number funcionar para ir numerando as linhas das tabelas conforme elas passam
+    --Select top 100 serve para dizer para o sql executar esses comando até chegar no número 100
+    From sys.objects
+) As Numeros    
+Go
+
+
+
+-- Inserindo dados na tabela ClientesAssinaturas
+--Fazendo a inserção usando a mesma lógica da tabela clientes, usando o que aprendi dos códigos novos.
+Insert Into ClientesAssinaturas (IdCliente, IdAssinatura, DataAssinatura)
+Select
+    Abs(CheckSum(NewId())) % 100 + 1 As IdCliente, --NewId me entrega um Guid aleatório, CheckSum transforma em número, e o Abs garante que seja positivo
+   Abs(CheckSum(NewId())) % (Select Count(IdAssinatura) From Assinaturas) + (Select Min(IdAssinatura) From Assinaturas), -- Usando duas subquery desse modo Vai cadastrar de acordo com os dados sendo pegos diretos da tabela
+    DateAdd (Day, -Abs(CheckSum(NewId())) % 730, GetDate()) As DataAssinatura -- Date add Somar ou subtrair o tempo de uma data o Day deixa claro que queremos mexer em dias não em meses nem em anos
+    -- usamos o -Abs indica que queremos subtrair ou seja ir para o passado Getdate indica a data de partida Hoje 07/07/2026
+From (
+Select top 150 ROW_NUMBER() Over (Order By (Select Null)) As N -- Top 150 para dizer ao sql server para ir até a linha 150, 
+From Sys.objects
+) As Numeros
+Go
+
+--Usando esse select descobri qual é a primeira a última e quantas assinaturas tem apartir dos ids
+Select Min(IdAssinatura) As Menor, Max(IdAssinatura) As Maior, Count(IdAssinatura) As Total 
+From Assinaturas

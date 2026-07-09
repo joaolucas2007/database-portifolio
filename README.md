@@ -64,6 +64,7 @@ Status: V3 do projeto
 * Python
 * Engenharia de Dados
 * Inglês para Tecnologia
+* Power BI
 
 ---
 
@@ -76,7 +77,7 @@ Busco desenvolver uma base sólida em dados e programação para conquistar minh
 ## 📫 Contato
 
 * LinkedIn: (www.linkedin.com/in/joão-lucas-freire-da-silva-a1b139420)
-* Email: (joao.lfs2000p@gmail.com)
+* Email: (joao.lucas.devsql@gmail.com)
 
 Obrigado por visitar meu repositório.
 
