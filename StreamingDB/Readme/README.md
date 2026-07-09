@@ -31,7 +31,6 @@ O projeto foi criado com o objetivo de consolidar conhecimentos em modelagem de 
 
 ## Estrutura do Projeto
 
-```text
 StreamingDB
 │
 ├── Scripts
@@ -44,3 +43,15 @@ StreamingDB
 │
 └── Readme
     └── README.md
+
+## Business Intelligence & Dashboard (Power BI)
+
+Para complementar a análise técnica dos scripts SQL, foi desenvolvido um painel interativo no Power BI conectado ao banco de dados `StreamingDB`. O objetivo é transformar as consultas de negócios em indicadores visuais e acionáveis (KPIs).
+
+## Indicadores Monitorados:
+* **Faturamento por Plataforma**: Soma das assinaturas ativas de clientes.
+* **Evolução Mensal**: Volume de novas assinaturas realizadas ao longo do tempo.
+* **Engajamento de Catálogo**: Nota média das séries filtradas por gênero.
+* **Perfil do Consumidor**: Distribuição das formas de pagamento preferidas pelos clientes.
+
+![Dashboard StreamingDB](../Imagens-DER-BI/dashboard_01.png)
