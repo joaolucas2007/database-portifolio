@@ -17,6 +17,7 @@ O projeto foi criado com o objetivo de consolidar conhecimentos em modelagem de 
 * T-SQL
 * Git
 * GitHub
+* Power Bi
 
 ## Conceitos Aplicados
 
@@ -37,10 +38,10 @@ StreamingDB
 │   ├── 01_Schema_2.sql
 │   ├── 02_Crud_2.sql
 │   ├── 03_Relatorio_Negocio_2.sql
-│
-├── diagrama
+│   ├── 04_Relatorio_PowerBI.sql
+├── Imagens-DER-BI
 │   └── DER-StreamingDB-V3.png
-│
+│   ├── dashboard_01.png
 └── Readme
     └── README.md
 
