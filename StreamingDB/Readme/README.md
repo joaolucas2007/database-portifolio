@@ -9,7 +9,7 @@ O projeto foi criado com o objetivo de consolidar conhecimentos em modelagem de 
 
 ## Diagrama Entidade-Relacionamento
 
-![DER](../diagrama/DER-StreamingDB-V3.png)
+![DER](../Imagens-DER-BI/DER-StreamingDB-V3.png)
 
 ## Tecnologias Utilizadas
 
