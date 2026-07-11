@@ -470,3 +470,61 @@ On CS.IdAssinatura = A.IdAssinatura
 Where A.TipoAssinatura = 'Premium'
 Group By C.FormaPagamento
 Go
+
+
+-- Aprendendo Windows Function --
+
+Select
+S.TituloSerie, P.NomePlataforma, S.NotaImdb,
+Convert(Decimal(4,2),Avg(S.NotaImdb) Over(Partition By P.NomePlataforma)) As MediaPlataforma -- O Over cria e limita o tamanho da 'Janela' o partition by define como a janela 
+--vai ser Agrupada nesse caso por plataforma assim mostramos a series e nota dela e a media de nota da plataformas delas
+--usamos o convert para deixar melhor a visualização
+From Series S
+Inner Join Plataformas P
+On S.IdPlataforma = P.IdPlataforma
+Go
+
+
+Select S.TituloSerie, P.NomePlataforma, S.NotaImdb,
+Row_Number () Over(partition By P.nomePlataforma Order By S.NotaImdb) As RankingPorPlataforma
+--o Row_Number Serve para que criar uma coluna usado nessa query para criar um ranking, e ordenando por NotaImdb Criando um ranking por plataforma
+--  A consulta é dividida por grupos que são as Plataformas a partir do momento que muda de plataforma o ranking reinicia 
+From Series S
+Inner Join Plataformas P
+On S.IdPlataforma = P.IdPlataforma
+Go
+
+--A equipe quer analisar a duração dos episódios de cada série para entender a estrutura das temporadas.
+
+Select E.TituloEpisodio, E.NumeroTemporada, S.TituloSerie, E.DuracaoEpisodio,
+Row_Number () Over(Partition By S.IdSerie Order By E.DuracaoEpisodio) As RankingDuracao
+From Series S
+Inner Join Episodios E 
+On E.IdSerie = S.IdSerie
+Go
+
+
+
+Select
+E.TituloEpisodio, E.NumeroTemporada, S.TituloSerie, E.DuracaoEpisodio,
+Avg(E.DuracaoEpisodio) Over(Partition By S.IdSerie, E.NumeroTemporada) As MediaSerie
+--Esse Over mostra a média da série do episódio e da temporada dele 
+From Series S
+Inner Join Episodios E 
+On E.IdSerie = S.IdSerie
+Go
+
+/*A equipe de marketing quer analisar o comportamento de gastos dos clientes. Eles querem ver uma lista com todos os clientes e as  assinaturas que
+eles compraram, mas precisam entender como o valor daquela assinatura se compara com o maior valor que aquela plataforma cobra.*/
+Select C.NomeCliente, P.NomePlataforma, A.TipoAssinatura, A.ValorAssinatura,
+Max(A.ValorAssinatura) Over(Partition By P.IdPlataforma) As AssinaturaMaisCara,
+--Usando o Max a gente mostra o valor da assinatura mais cara por da plataforma que o cliente assinou
+Sum(A.ValorAssinatura) Over(Partition By P.IdPlataforma) As TotalGanho
+From Clientes C
+Inner Join ClientesAssinaturas CS
+On C.IdCliente = CS.IdCliente
+Inner Join Assinaturas A
+On A.IdAssinatura = CS.IdAssinatura
+Inner Join Plataformas P
+On A.IdPlataforma = P.IdPlataforma
+Go
