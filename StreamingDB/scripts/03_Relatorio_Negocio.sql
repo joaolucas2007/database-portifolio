@@ -528,3 +528,55 @@ On A.IdAssinatura = CS.IdAssinatura
 Inner Join Plataformas P
 On A.IdPlataforma = P.IdPlataforma
 Go
+
+-- aprendendo novos conceitos do windows function --
+
+--usando dense_rank para fazer consultas usando o dense_rank que não deixa buracos
+
+
+/*A equipe quer um ranking das assinaturas mais caras dentro de cada plataforma. 
+Se duas assinaturas tiverem o mesmo preço, elas devem dividir a mesma posição 
+no ranking, e o próximo número não pode ser pulado.*/
+
+Select A.TipoAssinatura, A.ValorAssinatura , P.NomePlataforma,
+Dense_Rank() Over(Partition By P.IdPlataforma Order By A.ValorAssinatura Desc) As AssinaturaMaisCara
+From Assinaturas A 
+Inner Join Plataformas P
+On A.IdPlataforma = P.IdPlataforma
+Go
+
+--Usando Lag para buscar o valor da linha anterior --
+
+/*Para cada série, liste os episódios ordenados por temporada e número do episódio. Mostre a 
+duração do episódio atual e, em uma nova coluna chamada DuracaoEpisodioAnterior,
+mostre a duração do episódio que veio logo antes dele.*/
+
+Select S.TituloSerie, E.TituloEpisodio, E.DuracaoEpisodio,
+Lag(E.DuracaoEpisodio) Over(Partition By S.IdSerie Order By E.NumeroTemporada, E.NumeroEpisodio ) As DuracaoEpisodioAnterior
+From Series S
+Inner Join Episodios E
+On S.IdSerie = E.IdSerie
+Go
+
+--Usando Sum Mais Uma vez para somar as assinaturas--
+--A cada Data vai somando e vai crescendo o total ganho com aquele tipo de assinatura--
+Select a.TipoAssinatura, cs.IdClienteAssinatura, CS.DataAssinatura,
+Sum(A.ValorAssinatura) Over(Partition By A.TipoAssinatura Order By CS.DataAssinatura) As SomaAssinaturas
+From Assinaturas A
+Inner Join ClientesAssinaturas CS
+On a.IdAssinatura = CS.IdAssinatura
+Go
+
+
+/* Ao usarmos o Lag para ver o tempo do episódio anterior, fica nulo no episódio 1, pois não tem 
+um episódio 0, agora vamos tratar isso*/
+
+Select S.TituloSerie, E.TituloEpisodio, E.DuracaoEpisodio,
+-- colocamos 1, 0, usamos LAG(coluna, offset, valor_padrao) 
+Lag(E.DuracaoEpisodio, 1, 0) Over(Partition By S.IdSerie Order By E.NumeroTemporada, E.NumeroEpisodio ) As DuracaoEpisodioAnterior
+From Series S
+Inner Join Episodios E
+On S.IdSerie = E.IdSerie
+Go
+
+
