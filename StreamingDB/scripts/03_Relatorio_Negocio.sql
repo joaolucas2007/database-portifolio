@@ -607,9 +607,112 @@ On A.IdAssinatura = CS.IdAssinatura
 Group By P.IdPlataforma, P.NomePlataforma
 Go
 
-/*O financeiro quer acompanhar a meta diária de vendas de 2026. Escreva uma query que retorne:
-A data da venda.
-O valor da venda do dia.
-O faturamento acumulado até aquele dia do ano*/
+--Fixando Row_Number, Rank e Dense-Rank
+
+Select TituloSerie, IdPlataforma, NotaImdb,
+Row_Number() Over(Partition By IdPlataforma Order By NotaImdb Desc) As posicaoRow,
+Rank () Over (Partition By IdPlataforma Order By NotaImdb Desc) As PosicaoRank,
+Dense_Rank() Over(Partition By IdPlataforma Order By NotaImdb Desc) As PosicaoDense
+From Series 
+Go
 
 
+-- Aprendendo First_Value e Last_Value
+Select 
+    TituloSerie,
+    IdPlataforma,
+    NotaImdb,
+    First_Value(TituloSerie) Over ( -- First_Value vai pegar o primeiro valor da ordenação dessa coluna do windows function
+    -- como ordenei por nota vai ser a Serie com maior nota daquela paltaforma
+        Partition By IdPlataforma 
+        Order By NotaImdb Desc
+    ) As SerieTopPlataforma,
+    Last_Value(TituloSerie) Over ( -- Mesmo sentido porém pegando só a menor nota daquela plataforma
+        Partition By IdPlataforma 
+        Order By NotaImdb Desc
+        Rows Between Unbounded Preceding And Unbounded Following
+     -- Sem o ROWS BETWEEN, o LAST_VALUE falharia porque o SQL Server avalia a janela 
+-- linha por linha, considerando a "linha atual" como o fim da janela naquele momento.
+-- Com o "ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING", forçamos o SQL
+-- a olhar para a PARTIÇÃO INTEIRA (do início ao fim do grupo da plataforma), 
+-- garantindo que ele encontre o verdadeiro último valor.
+    ) As SeriePiorPlataforma
+From Series
+Order By IdPlataforma, NotaImdb Desc
+Go
+
+--Na tabela Filmes, mostre TituloFilme, IdPlataforma, NotaImdb, 
+--e uma coluna FilmeTopPlataforma trazendo o nome do filme com maior nota de cada plataforma.
+
+Select TituloFilme, IdPlataforma, NotaImdb,
+First_Value(TituloFilme) Over(Partition By IdPlataforma Order By NotaImdb Desc) As FilmeMaiorNota
+From Filmes 
+Go
+
+-- Usando o mesmo código para pegar o filme com a menor nota
+Select TituloFilme, IdPlataforma, NotaImdb,
+First_Value(TituloFilme) Over(Partition By IdPlataforma Order By NotaImdb Asc) As FilmeMaiorNota
+From Filmes 
+Go
+
+
+
+--Usando o last_Value agora com frame completo
+
+Select TituloSerie, IdPlataforma, NotaImdb,
+First_Value(TituloSerie) Over (Partition By IdPlataforma Order By NotaImdb Desc) As SerieTop ,
+--usamos first_Value para pegar a série de top 1 
+Last_Value(TituloSerie) Over (Partition By IdPlataforma Order By NotaImdb Desc
+Rows Between Unbounded Preceding And Unbounded Following) As SeriePior,
+-- da mesma forma usamos last_value para pegar a serie com a nota mais baixa porém temos que usar 
+--o comando rows between unbounded preceding and unbounded following para que desde o ínicio da consulta ele olha a janela inteira
+First_Value(NotaImdb) Over(Partition By IdPlataforma Order By NotaImdb Desc) As NotaSerieTop,
+-- nessa consulta mostramos a nota da maior série da plataforma
+NotaImdb - First_Value(NotaImdb) Over(Partition By IdPlataforma Order By NotaImdb Desc) As Notadiferenca
+-- e aqui mostramos a diferença da série atual para a nota da maior série da plataforma
+From Series
+Go
+
+
+--CTE (Common Table Expression) tem outro jeito de pegar essa diferença usao CTE
+-- Como o select não consegue enxergar os alias, dessa maneira a gente divide a query em duas
+-- a primeira o CTE onde buscamos e damos os alias para as tabelas temporárias
+-- a segunda parte é onde podemos usar os alias pois agora são nomes de colunas de uma tabela temporária de verdade
+With SeriesComTop As ( -- esse comando cria uma tabela virtual
+    Select 
+        TituloSerie, 
+        IdPlataforma, 
+        NotaImdb,
+        First_Value(TituloSerie) Over (Partition By IdPlataforma Order By NotaImdb Desc) As SerieTop,
+        Last_Value(TituloSerie) Over (Partition By IdPlataforma Order By NotaImdb Desc
+            Rows Between Unbounded Preceding And Unbounded Following) As SeriePior,
+        First_Value(NotaImdb) Over(Partition By IdPlataforma Order By NotaImdb Desc) As NotaSerieTop
+    From Series
+)-- após esse fechamento usamos o select com from em SeriesComTop que só existe nessa query mas agora é uma tabela de verdade
+Select 
+    TituloSerie, 
+    IdPlataforma, 
+    NotaImdb, 
+    SerieTop, 
+    SeriePior, 
+    NotaSerieTop,
+    NotaImdb - NotaSerieTop As DiferencaParaTop
+From SeriesComTop
+Order By IdPlataforma, NotaImdb Desc
+Go
+
+
+--Usando CTE e First_Value e Last_Value na mesma lógica para ver os filmes de cada plataforma 
+With FilmesComTop As (
+Select TituloFilme, IdPlataforma, NotaImdb,
+First_Value(TituloFilme) Over(Partition By IdPlataforma Order By NotaImdb Desc) As TopNotaMaior,
+Last_Value(TituloFilme) Over (Partition By IdPlataforma Order By NotaImdb Desc
+Rows Between Unbounded Preceding And Unbounded Following) As TopNotaMenor  ,
+First_Value(NotaImdb) Over (Partition By IdPlataforma Order By NotaImdb Desc) As MaiorNota
+From Filmes
+)
+Select
+TituloFilme, IdPlataforma, NotaImdb, TopNotaMaior, TopNotaMenor, MaiorNota,
+NotaImdb - MaiorNota As Diferencaparatop
+From FilmesComTop
+Go
