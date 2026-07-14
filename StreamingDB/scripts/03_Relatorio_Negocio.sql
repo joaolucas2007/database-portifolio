@@ -580,3 +580,36 @@ On S.IdSerie = E.IdSerie
 Go
 
 
+/*Cenário: O time de finanças quer entender se os clientes estão fazendo upgrade (mudando para planos mais caros)
+ou downgrade (planos mais baratos) ao longo do tempo.*/
+
+Select CS.IdCliente, A.IdAssinatura, CS.DataAssinatura, A.TipoAssinatura,
+-- Usando mesma lógica doo offset para evitar nulos
+Lag(A.TipoAssinatura, 1,'PrimeiraAssinatura') Over(Partition By CS.IdCliente Order By CS.DataAssinatura Desc) As AssinaturaAnterior
+From ClientesAssinaturas CS
+Inner Join Assinaturas A
+On CS.IdAssinatura = A.IdAssinatura
+Go
+
+
+
+/*Cenário: A diretoria quer dar um bônus para os gerentes das plataformas que mais faturam,
+mas eles querem um ranking justo onde plataformas com o mesmo faturamento dividam a mesma posição sem pular números.*/
+
+Select P.NomePlataforma, 
+Sum(A.ValorAssinatura) As Totalganho, 
+Dense_Rank() Over(Order By Sum(A.valorAssinatura) Desc) As Ranking
+From Plataformas P
+Inner Join Assinaturas A
+On A.IdPlataforma = P.IdPlataforma
+Inner Join ClientesAssinaturas CS
+On A.IdAssinatura = CS.IdAssinatura
+Group By P.IdPlataforma, P.NomePlataforma
+Go
+
+/*O financeiro quer acompanhar a meta diária de vendas de 2026. Escreva uma query que retorne:
+A data da venda.
+O valor da venda do dia.
+O faturamento acumulado até aquele dia do ano*/
+
+
