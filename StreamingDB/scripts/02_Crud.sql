@@ -462,3 +462,31 @@ Begin
     End
 End
 Go
+
+
+
+Create Trigger Trg_ClientesSeries_ValadarAssinatura_02 -- Criando um novo trigger para garantir segurança nos dados na tabela ClientesSeries
+On ClientesSeries -- Esse Trigger vai funcioonar somente para a tabela ClientesSeries
+After Insert -- Começa a executar assim que existe uma tentativa de inserção
+As 
+Begin 
+    If Exists (
+                Select 1
+                From inserted I
+                Inner Join Series S On S.IdSerie = I.IdSerie -- vendo de qual plataforma é a série
+
+                Where Not Exists (
+                  Select 1 
+                  From ClientesAssinaturas CA 
+                  Inner Join Assinaturas A On A.IdAssinatura = CA.IdAssinatura   -- Conecta a assinatura do cliente e os dados dela no caso a plataforma
+                  Where CA.IdCliente = I.IdCliente  -- garantimos que é o mesmo cliente da assinatura que estamos observando
+                  And A.IdPlataforma = S.IdPlataforma -- garantindo que a plataforma é a mems da serie
+                )
+    
+    )
+    Begin 
+    Throw 50000, 'Cliente não possui assinatura na plataforma dessa série.',1; -- a resposta em caso de erro
+    RollBack Transaction  -- Se der erro cancela todas as inserções 
+    End
+End
+Go
