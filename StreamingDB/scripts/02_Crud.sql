@@ -433,3 +433,32 @@ Go
 --Usando esse select descobri qual é a primeira a última e quantas assinaturas tem apartir dos ids
 Select Min(IdAssinatura) As Menor, Max(IdAssinatura) As Maior, Count(IdAssinatura) As Total 
 From Assinaturas
+
+/*Criando um Trigger que é como um aviso para que na hora de inserir os filmes e séries que os clientes assistiram só permitir
+os filmes e series das plataformas que eles assistiram*/
+
+Create Trigger Trg_ClientesFilmes_ValidaAssinatura -- Cria um "segurança" (gatilho) automatizado no Banco de Dados
+On ClientesFilmes -- Este gatilho fica vigiando exclusivamente a tabela ClientesFilmes
+After Insert -- Executa imediatamente após uma tentativa de inserção de dados (antes de gravar definitivo)
+As
+Begin
+    -- Se existir algum registro inserido cujo cliente NÃO tenha assinatura
+    -- ativa na plataforma do filme, barra a inserção inteira.
+    If Exists (
+        Select 1 -- Retorna apenas "1" (verdadeiro) se encontrar qualquer linha que viole a regra (ganho de performance)
+        From Inserted I -- "Inserted" é a tabela virtual que guarda as linhas que estão tentando ser inseridas agora
+        Inner Join Filmes F On F.IdFilme = I.IdFilme -- Cruza com Filmes para descobrir de qual plataforma é o filme tentado
+        Where Not Exists ( -- Procura se NÃO EXISTE uma assinatura válida para este cliente nesta plataforma
+            Select 1
+            From ClientesAssinaturas CA
+            Inner Join Assinaturas A On A.IdAssinatura = CA.IdAssinatura -- Conecta a assinatura do cliente com os dados dela (como a plataforma)
+            Where CA.IdCliente = I.IdCliente -- Garante que estamos olhando para o mesmo cliente que tenta assistir ao filme
+              And A.IdPlataforma = F.IdPlataforma -- Garante que a plataforma assinada é a mesma plataforma do filme
+        )
+    )
+    Begin -- Inicia o bloco de punição se a validação falhar (se o cliente não tiver a assinatura)
+        RaisError('Cliente não possui assinatura na plataforma deste filme.', 16, 1) -- Dispara a mensagem de erro vermelha na tela do usuário
+        Rollback Transaction -- Cancela a operação inteira. Se tentou inserir 10 linhas e só 1 falhou, todas as 10 são abortadas
+    End
+End
+Go
