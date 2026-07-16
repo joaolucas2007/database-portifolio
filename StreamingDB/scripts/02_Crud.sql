@@ -457,7 +457,7 @@ Begin
         )
     )
     Begin -- Inicia o bloco de punição se a validação falhar (se o cliente não tiver a assinatura)
-        RaisError('Cliente não possui assinatura na plataforma deste filme.', 16, 1) -- Dispara a mensagem de erro vermelha na tela do usuário
+        Throw 50000, 'Cliente não possui assinatura na plataforma deste filme.', 1; -- Entrega a mensagem de erro ao usuário
         Rollback Transaction -- Cancela a operação inteira. Se tentou inserir 10 linhas e só 1 falhou, todas as 10 são abortadas
     End
 End
