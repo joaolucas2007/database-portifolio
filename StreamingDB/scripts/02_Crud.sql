@@ -490,3 +490,80 @@ Begin
     End
 End
 Go
+
+
+-- Agora Populando ClientesSeries De forma aleatória respeitnado o trigger criado para garantir segurança e realidade no Banco de Dados
+
+-- Usando TCE Crio uma tabela virtual
+With ClientesPlataformas As (
+    Select Distinct -- Select distinct serve para pegar somente os diferentes sem repetição
+        CA.IdCliente,
+        A.IdPlataforma
+    From ClientesAssinaturas CA
+    Inner Join Assinaturas A
+        On A.IdAssinatura = CA.IdAssinatura -- usando esse inner join para garantir que a plataforma da assinatura do cliente
+),
+
+-- Criando outra tabela virtual
+ParesValidosSeries As (
+    Select
+        CP.IdCliente,
+        S.IdSerie,
+        Row_Number() Over (Partition By CP.IdCliente Order By NewId()) As Linha
+    From ClientesPlataformas CP
+    Inner Join Series S
+        On CP.IdPlataforma = S.IdPlataforma -- garantir que só vai ter séries das plataformas que os clientes assinam
+)
+
+
+Insert Into ClientesSeries
+    (IdCliente, IdSerie, DataInicioSerie, DataFimSerie, NotaSerieCliente)
+Select
+    IdCliente,
+    IdSerie,
+    DataInicio,
+    DateAdd(Day, Abs(Checksum(NewId())) % 30, DataInicio) As DataFimSerie,  -- NewId como vimos mais acima gera um Id Aleatório Abs Garante que tudo fica Positivo
+    -- o ChekcSum deixa esse Id Com Valor Numérico o DateAdd é o que usamos para subtrair ou somar uma data o day é para dizer que queremos mexer em dias
+    Cast((Abs(Checksum(NewId())) % 101) As Decimal(4,1)) / 10 As NotaSerieCliente -- Adicionando uma nota aleatória para cada cliente 
+From (
+    Select
+        IdCliente,
+        IdSerie,
+        Linha,
+        DateAdd(Day, -Abs(Checksum(NewId())) % 730, GetDate()) As DataInicio -- para garantir que o ínicio de cada cliente vai ser no máximo até 2 anos atrás
+    From ParesValidosSeries
+    Where Linha <= 5 -- Garanti que só vai ter no máximo 5 séries aleatórias por Clientes
+) As Selecionadas
+Go
+
+
+
+With ClientesPlataformas As (
+    Select Distinct
+        CA.IdCliente,
+        A.IdPlataforma
+    From ClientesAssinaturas CA
+    Inner Join Assinaturas A
+        On A.IdAssinatura = CA.IdAssinatura
+),
+ParesValidosFilmes As (
+    Select
+        CP.IdCliente,
+        F.IdFilme,
+        Row_Number() Over (Partition By CP.IdCliente Order By NewId()) As Linha
+    From ClientesPlataformas CP
+    Inner Join Filmes F
+        On CP.IdPlataforma = F.IdPlataforma
+)
+Insert Into ClientesFilmes
+    (IdCliente, IdFilme, NotaFilmeCliente, DataAssistido)
+Select
+    IdCliente,
+    IdFilme,
+    Cast((Abs(Checksum(NewId())) % 101) As Decimal(4,1)) / 10 As NotaFilmeCliente,
+    DateAdd(Day, -Abs(Checksum(NewId())) % 730, GetDate()) As DataAssistido
+From ParesValidosFilmes
+Where Linha <= 4
+Go
+
+
