@@ -716,3 +716,61 @@ TituloFilme, IdPlataforma, NotaImdb, TopNotaMaior, TopNotaMenor, MaiorNota,
 NotaImdb - MaiorNota As Diferencaparatop
 From FilmesComTop
 Go
+
+
+-- Agora com o relacionamneto de clientes e Séries novas consultas mais realistas
+
+
+/*Cenário: O time de negócios quer rastrear a evolução financeira de cada cliente. 
+Se um cliente assinou um plano de R$ 27,90 e depois mudou para um de R$ 59,90, isso é um Upgrade.*/
+
+
+-- Usando TCE 
+With EvolucaoFinanceira As (
+Select C.NomeCliente, A.IdPlataforma, A.ValorAssinatura As AssinaturaAtual,
+lag (A.ValorAssinatura, 1, 0) Over (Partition By C.IdCliente Order By CA.DataAssinatura)  As Assinaturaanterior
+From Clientes C
+Inner Join ClientesAssinaturas CA
+On C.IdCliente = CA.IdCliente
+Inner Join Assinaturas A
+ON CA.IdAssinatura = A.IdAssinatura
+)
+
+Select NomeCliente, IdPlataforma, AssinaturaAtual, Assinaturaanterior,
+Case 
+    When Assinaturaanterior = 0 Then 'Primeira Assinatura'
+    When Assinaturaanterior > AssinaturaAtual Then 'Upgrade de Plano'
+Else 'Dowgrade de Plano'
+End As StatusFinaanceiro
+From EvolucaoFinanceira
+Go
+
+
+/*Cenário: O time de produto quer saber o quão viciado o usuário é. Esta consulta analisa quanto tempo um cliente levou 
+assistindo a uma série específica baseando-se na soma da duração de todos os episódios daquela temporada/série.*/
+
+With TempoConsumindoCliente As(
+Select  C.NomeCliente, S.TituloSerie,
+Count(CS.IdClienteSerie) As TotalSeriesAssistidos, CS.NotaSerieCliente
+From Clientes C
+Inner Join ClientesSeries CS
+On C.IdCliente = CS.IdCliente
+Inner Join Series S
+On S.IdSerie = CS.IdSerie
+Group by C.NomeCliente, S.TituloSerie, CS.NotaSerieCliente
+),
+CatalogoTempoReal As (
+Select S.TituloSerie, Count (E.IdEpisodio) As TotalEpisodio, Sum(E.DuracaoEpisodio) As TotalTempoSerie
+From Series S
+Inner Join Episodios E
+On S.IdSerie = E.IdSerie
+Group By S.TituloSerie
+)
+Select TC.NomeCliente, TC.TituloSerie,TC.NotaSerieCliente,
+Convert(Decimal(3,1),Avg(TC.NotaSerieCliente) Over(Partition By TC.TituloSerie)) As TotaMediaSerie,
+CT.TotalEpisodio, CT.TotalTempoSerie
+From TempoConsumindoCliente TC
+Inner Join CatalogoTempoReal CT
+On TC.TituloSerie = CT.TituloSerie 
+Go
+
