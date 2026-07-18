@@ -470,3 +470,307 @@ On CS.IdAssinatura = A.IdAssinatura
 Where A.TipoAssinatura = 'Premium'
 Group By C.FormaPagamento
 Go
+
+
+-- Aprendendo Windows Function --
+
+Select
+S.TituloSerie, P.NomePlataforma, S.NotaImdb,
+Convert(Decimal(4,2),Avg(S.NotaImdb) Over(Partition By P.NomePlataforma)) As MediaPlataforma -- O Over cria e limita o tamanho da 'Janela' o partition by define como a janela 
+--vai ser Agrupada nesse caso por plataforma assim mostramos a series e nota dela e a media de nota da plataformas delas
+--usamos o convert para deixar melhor a visualização
+From Series S
+Inner Join Plataformas P
+On S.IdPlataforma = P.IdPlataforma
+Go
+
+
+Select S.TituloSerie, P.NomePlataforma, S.NotaImdb,
+Row_Number () Over(partition By P.nomePlataforma Order By S.NotaImdb) As RankingPorPlataforma
+--o Row_Number Serve para que criar uma coluna usado nessa query para criar um ranking, e ordenando por NotaImdb Criando um ranking por plataforma
+--  A consulta é dividida por grupos que são as Plataformas a partir do momento que muda de plataforma o ranking reinicia 
+From Series S
+Inner Join Plataformas P
+On S.IdPlataforma = P.IdPlataforma
+Go
+
+--A equipe quer analisar a duração dos episódios de cada série para entender a estrutura das temporadas.
+
+Select E.TituloEpisodio, E.NumeroTemporada, S.TituloSerie, E.DuracaoEpisodio,
+Row_Number () Over(Partition By S.IdSerie Order By E.DuracaoEpisodio) As RankingDuracao
+From Series S
+Inner Join Episodios E 
+On E.IdSerie = S.IdSerie
+Go
+
+
+
+Select
+E.TituloEpisodio, E.NumeroTemporada, S.TituloSerie, E.DuracaoEpisodio,
+Avg(E.DuracaoEpisodio) Over(Partition By S.IdSerie, E.NumeroTemporada) As MediaSerie
+--Esse Over mostra a média da série do episódio e da temporada dele 
+From Series S
+Inner Join Episodios E 
+On E.IdSerie = S.IdSerie
+Go
+
+/*A equipe de marketing quer analisar o comportamento de gastos dos clientes. Eles querem ver uma lista com todos os clientes e as  assinaturas que
+eles compraram, mas precisam entender como o valor daquela assinatura se compara com o maior valor que aquela plataforma cobra.*/
+Select C.NomeCliente, P.NomePlataforma, A.TipoAssinatura, A.ValorAssinatura,
+Max(A.ValorAssinatura) Over(Partition By P.IdPlataforma) As AssinaturaMaisCara,
+--Usando o Max a gente mostra o valor da assinatura mais cara por da plataforma que o cliente assinou
+Sum(A.ValorAssinatura) Over(Partition By P.IdPlataforma) As TotalGanho
+From Clientes C
+Inner Join ClientesAssinaturas CS
+On C.IdCliente = CS.IdCliente
+Inner Join Assinaturas A
+On A.IdAssinatura = CS.IdAssinatura
+Inner Join Plataformas P
+On A.IdPlataforma = P.IdPlataforma
+Go
+
+-- aprendendo novos conceitos do windows function --
+
+--usando dense_rank para fazer consultas usando o dense_rank que não deixa buracos
+
+
+/*A equipe quer um ranking das assinaturas mais caras dentro de cada plataforma. 
+Se duas assinaturas tiverem o mesmo preço, elas devem dividir a mesma posição 
+no ranking, e o próximo número não pode ser pulado.*/
+
+Select A.TipoAssinatura, A.ValorAssinatura , P.NomePlataforma,
+Dense_Rank() Over(Partition By P.IdPlataforma Order By A.ValorAssinatura Desc) As AssinaturaMaisCara
+From Assinaturas A 
+Inner Join Plataformas P
+On A.IdPlataforma = P.IdPlataforma
+Go
+
+--Usando Lag para buscar o valor da linha anterior --
+
+/*Para cada série, liste os episódios ordenados por temporada e número do episódio. Mostre a 
+duração do episódio atual e, em uma nova coluna chamada DuracaoEpisodioAnterior,
+mostre a duração do episódio que veio logo antes dele.*/
+
+Select S.TituloSerie, E.TituloEpisodio, E.DuracaoEpisodio,
+Lag(E.DuracaoEpisodio) Over(Partition By S.IdSerie Order By E.NumeroTemporada, E.NumeroEpisodio ) As DuracaoEpisodioAnterior
+From Series S
+Inner Join Episodios E
+On S.IdSerie = E.IdSerie
+Go
+
+--Usando Sum Mais Uma vez para somar as assinaturas--
+--A cada Data vai somando e vai crescendo o total ganho com aquele tipo de assinatura--
+Select a.TipoAssinatura, cs.IdClienteAssinatura, CS.DataAssinatura,
+Sum(A.ValorAssinatura) Over(Partition By A.TipoAssinatura Order By CS.DataAssinatura) As SomaAssinaturas
+From Assinaturas A
+Inner Join ClientesAssinaturas CS
+On a.IdAssinatura = CS.IdAssinatura
+Go
+
+
+/* Ao usarmos o Lag para ver o tempo do episódio anterior, fica nulo no episódio 1, pois não tem 
+um episódio 0, agora vamos tratar isso*/
+
+Select S.TituloSerie, E.TituloEpisodio, E.DuracaoEpisodio,
+-- colocamos 1, 0, usamos LAG(coluna, offset, valor_padrao) 
+Lag(E.DuracaoEpisodio, 1, 0) Over(Partition By S.IdSerie Order By E.NumeroTemporada, E.NumeroEpisodio ) As DuracaoEpisodioAnterior
+From Series S
+Inner Join Episodios E
+On S.IdSerie = E.IdSerie
+Go
+
+
+/*Cenário: O time de finanças quer entender se os clientes estão fazendo upgrade (mudando para planos mais caros)
+ou downgrade (planos mais baratos) ao longo do tempo.*/
+
+Select CS.IdCliente, A.IdAssinatura, CS.DataAssinatura, A.TipoAssinatura,
+-- Usando mesma lógica doo offset para evitar nulos
+Lag(A.TipoAssinatura, 1,'PrimeiraAssinatura') Over(Partition By CS.IdCliente Order By CS.DataAssinatura Desc) As AssinaturaAnterior
+From ClientesAssinaturas CS
+Inner Join Assinaturas A
+On CS.IdAssinatura = A.IdAssinatura
+Go
+
+
+
+/*Cenário: A diretoria quer dar um bônus para os gerentes das plataformas que mais faturam,
+mas eles querem um ranking justo onde plataformas com o mesmo faturamento dividam a mesma posição sem pular números.*/
+
+Select P.NomePlataforma, 
+Sum(A.ValorAssinatura) As Totalganho, 
+Dense_Rank() Over(Order By Sum(A.valorAssinatura) Desc) As Ranking
+From Plataformas P
+Inner Join Assinaturas A
+On A.IdPlataforma = P.IdPlataforma
+Inner Join ClientesAssinaturas CS
+On A.IdAssinatura = CS.IdAssinatura
+Group By P.IdPlataforma, P.NomePlataforma
+Go
+
+--Fixando Row_Number, Rank e Dense-Rank
+
+Select TituloSerie, IdPlataforma, NotaImdb,
+Row_Number() Over(Partition By IdPlataforma Order By NotaImdb Desc) As posicaoRow,
+Rank () Over (Partition By IdPlataforma Order By NotaImdb Desc) As PosicaoRank,
+Dense_Rank() Over(Partition By IdPlataforma Order By NotaImdb Desc) As PosicaoDense
+From Series 
+Go
+
+
+-- Aprendendo First_Value e Last_Value
+Select 
+    TituloSerie,
+    IdPlataforma,
+    NotaImdb,
+    First_Value(TituloSerie) Over ( -- First_Value vai pegar o primeiro valor da ordenação dessa coluna do windows function
+    -- como ordenei por nota vai ser a Serie com maior nota daquela paltaforma
+        Partition By IdPlataforma 
+        Order By NotaImdb Desc
+    ) As SerieTopPlataforma,
+    Last_Value(TituloSerie) Over ( -- Mesmo sentido porém pegando só a menor nota daquela plataforma
+        Partition By IdPlataforma 
+        Order By NotaImdb Desc
+        Rows Between Unbounded Preceding And Unbounded Following
+     -- Sem o ROWS BETWEEN, o LAST_VALUE falharia porque o SQL Server avalia a janela 
+-- linha por linha, considerando a "linha atual" como o fim da janela naquele momento.
+-- Com o "ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING", forçamos o SQL
+-- a olhar para a PARTIÇÃO INTEIRA (do início ao fim do grupo da plataforma), 
+-- garantindo que ele encontre o verdadeiro último valor.
+    ) As SeriePiorPlataforma
+From Series
+Order By IdPlataforma, NotaImdb Desc
+Go
+
+--Na tabela Filmes, mostre TituloFilme, IdPlataforma, NotaImdb, 
+--e uma coluna FilmeTopPlataforma trazendo o nome do filme com maior nota de cada plataforma.
+
+Select TituloFilme, IdPlataforma, NotaImdb,
+First_Value(TituloFilme) Over(Partition By IdPlataforma Order By NotaImdb Desc) As FilmeMaiorNota
+From Filmes 
+Go
+
+-- Usando o mesmo código para pegar o filme com a menor nota
+Select TituloFilme, IdPlataforma, NotaImdb,
+First_Value(TituloFilme) Over(Partition By IdPlataforma Order By NotaImdb Asc) As FilmeMaiorNota
+From Filmes 
+Go
+
+
+
+--Usando o last_Value agora com frame completo
+
+Select TituloSerie, IdPlataforma, NotaImdb,
+First_Value(TituloSerie) Over (Partition By IdPlataforma Order By NotaImdb Desc) As SerieTop ,
+--usamos first_Value para pegar a série de top 1 
+Last_Value(TituloSerie) Over (Partition By IdPlataforma Order By NotaImdb Desc
+Rows Between Unbounded Preceding And Unbounded Following) As SeriePior,
+-- da mesma forma usamos last_value para pegar a serie com a nota mais baixa porém temos que usar 
+--o comando rows between unbounded preceding and unbounded following para que desde o ínicio da consulta ele olha a janela inteira
+First_Value(NotaImdb) Over(Partition By IdPlataforma Order By NotaImdb Desc) As NotaSerieTop,
+-- nessa consulta mostramos a nota da maior série da plataforma
+NotaImdb - First_Value(NotaImdb) Over(Partition By IdPlataforma Order By NotaImdb Desc) As Notadiferenca
+-- e aqui mostramos a diferença da série atual para a nota da maior série da plataforma
+From Series
+Go
+
+
+--CTE (Common Table Expression) tem outro jeito de pegar essa diferença usao CTE
+-- Como o select não consegue enxergar os alias, dessa maneira a gente divide a query em duas
+-- a primeira o CTE onde buscamos e damos os alias para as tabelas temporárias
+-- a segunda parte é onde podemos usar os alias pois agora são nomes de colunas de uma tabela temporária de verdade
+With SeriesComTop As ( -- esse comando cria uma tabela virtual
+    Select 
+        TituloSerie, 
+        IdPlataforma, 
+        NotaImdb,
+        First_Value(TituloSerie) Over (Partition By IdPlataforma Order By NotaImdb Desc) As SerieTop,
+        Last_Value(TituloSerie) Over (Partition By IdPlataforma Order By NotaImdb Desc
+            Rows Between Unbounded Preceding And Unbounded Following) As SeriePior,
+        First_Value(NotaImdb) Over(Partition By IdPlataforma Order By NotaImdb Desc) As NotaSerieTop
+    From Series
+)-- após esse fechamento usamos o select com from em SeriesComTop que só existe nessa query mas agora é uma tabela de verdade
+Select 
+    TituloSerie, 
+    IdPlataforma, 
+    NotaImdb, 
+    SerieTop, 
+    SeriePior, 
+    NotaSerieTop,
+    NotaImdb - NotaSerieTop As DiferencaParaTop
+From SeriesComTop
+Order By IdPlataforma, NotaImdb Desc
+Go
+
+
+--Usando CTE e First_Value e Last_Value na mesma lógica para ver os filmes de cada plataforma 
+With FilmesComTop As (
+Select TituloFilme, IdPlataforma, NotaImdb,
+First_Value(TituloFilme) Over(Partition By IdPlataforma Order By NotaImdb Desc) As TopNotaMaior,
+Last_Value(TituloFilme) Over (Partition By IdPlataforma Order By NotaImdb Desc
+Rows Between Unbounded Preceding And Unbounded Following) As TopNotaMenor  ,
+First_Value(NotaImdb) Over (Partition By IdPlataforma Order By NotaImdb Desc) As MaiorNota
+From Filmes
+)
+Select
+TituloFilme, IdPlataforma, NotaImdb, TopNotaMaior, TopNotaMenor, MaiorNota,
+NotaImdb - MaiorNota As Diferencaparatop
+From FilmesComTop
+Go
+
+
+-- Agora com o relacionamneto de clientes e Séries novas consultas mais realistas
+
+
+/*Cenário: O time de negócios quer rastrear a evolução financeira de cada cliente. 
+Se um cliente assinou um plano de R$ 27,90 e depois mudou para um de R$ 59,90, isso é um Upgrade.*/
+
+
+-- Usando TCE 
+With EvolucaoFinanceira As (
+Select C.NomeCliente, A.IdPlataforma, A.ValorAssinatura As AssinaturaAtual,
+lag (A.ValorAssinatura, 1, 0) Over (Partition By C.IdCliente Order By CA.DataAssinatura)  As Assinaturaanterior
+From Clientes C
+Inner Join ClientesAssinaturas CA
+On C.IdCliente = CA.IdCliente
+Inner Join Assinaturas A
+ON CA.IdAssinatura = A.IdAssinatura
+)
+
+Select NomeCliente, IdPlataforma, AssinaturaAtual, Assinaturaanterior,
+Case 
+    When Assinaturaanterior = 0 Then 'Primeira Assinatura'
+    When Assinaturaanterior > AssinaturaAtual Then 'Upgrade de Plano'
+Else 'Dowgrade de Plano'
+End As StatusFinaanceiro
+From EvolucaoFinanceira
+Go
+
+
+/*Cenário: O time de produto quer saber o quão viciado o usuário é. Esta consulta analisa quanto tempo um cliente levou 
+assistindo a uma série específica baseando-se na soma da duração de todos os episódios daquela temporada/série.*/
+
+With TempoConsumindoCliente As(
+Select  C.NomeCliente, S.TituloSerie,
+Count(CS.IdClienteSerie) As TotalSeriesAssistidos, CS.NotaSerieCliente
+From Clientes C
+Inner Join ClientesSeries CS
+On C.IdCliente = CS.IdCliente
+Inner Join Series S
+On S.IdSerie = CS.IdSerie
+Group by C.NomeCliente, S.TituloSerie, CS.NotaSerieCliente
+),
+CatalogoTempoReal As (
+Select S.TituloSerie, Count (E.IdEpisodio) As TotalEpisodio, Sum(E.DuracaoEpisodio) As TotalTempoSerie
+From Series S
+Inner Join Episodios E
+On S.IdSerie = E.IdSerie
+Group By S.TituloSerie
+)
+Select TC.NomeCliente, TC.TituloSerie,TC.NotaSerieCliente,
+Convert(Decimal(3,1),Avg(TC.NotaSerieCliente) Over(Partition By TC.TituloSerie)) As TotaMediaSerie,
+CT.TotalEpisodio, CT.TotalTempoSerie
+From TempoConsumindoCliente TC
+Inner Join CatalogoTempoReal CT
+On TC.TituloSerie = CT.TituloSerie 
+Go
+

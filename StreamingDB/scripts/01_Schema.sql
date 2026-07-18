@@ -158,3 +158,34 @@ Add Constraint Fk_ClientesAssinaturas_Assinaturas_IdAssinatura
 Foreign Key (IdAssinatura)
 References Assinaturas (IdAssinatura)
 Go
+
+
+--Criando a Tabela de Relacionamento entre Clientes e Series representando Series que os clientes assistiram e suas avaliações
+
+Create Table ClientesSeries (
+IdClienteSerie Int Primary Key Identity(1,1),
+IdCliente Int Not Null,
+IdSerie Int Not Null,
+DataInicioSerie Date Not Null,
+DataFimSerie Date Not Null,
+NotaSerieCliente Decimal(3,1) Not Null Check (NotaSerieCliente Between 0.0 And 10.0),
+Check(DataFimSerie >= DataInicioSerie), -- dessa forma DataFimSerie seja depois da DataInicioSerie
+--Adicionando FKs direto na criação da tabela dessa vez sem alter table
+Constraint Fk_ClientesSeries_Clientes_IdCliente Foreign Key (IdCliente) References Clientes(IdCliente),
+Constraint Fk_ClientesSeries_Serie_IdSerie Foreign Key (IdSerie) References Series(IdSerie)
+)
+Go
+
+--Criando a Tabela de Relacionamento entre Clientes e Filmes representando Filmes que os clientes assistiram e suas avaliações
+
+Create Table ClientesFilmes (
+IdClienteFilme Int Primary Key Identity(1,1),
+IdCliente Int Not Null,
+IdFilme Int Not Null,
+NotaFilmeCliente Decimal(3,1) Not Null Check (NotaFilmeCliente Between 0.0 And 10.0),
+DataAssistido Date Not Null,
+
+Constraint Fk_ClientesFilmes_Clientes_IdCliente Foreign Key (IdCliente) References Clientes(IdCliente),
+Constraint Fk_ClientesFilmes_Filmes_IdFilme Foreign Key (IdFilme) References Filmes(IdFilme)
+)
+Go

@@ -433,3 +433,137 @@ Go
 --Usando esse select descobri qual é a primeira a última e quantas assinaturas tem apartir dos ids
 Select Min(IdAssinatura) As Menor, Max(IdAssinatura) As Maior, Count(IdAssinatura) As Total 
 From Assinaturas
+
+/*Criando um Trigger que é como um aviso para que na hora de inserir os filmes e séries que os clientes assistiram só permitir
+os filmes e series das plataformas que eles assistiram*/
+
+Create Trigger Trg_ClientesFilmes_ValidaAssinatura -- Cria um "segurança" (gatilho) automatizado no Banco de Dados
+On ClientesFilmes -- Este gatilho fica vigiando exclusivamente a tabela ClientesFilmes
+After Insert -- Executa imediatamente após uma tentativa de inserção de dados (antes de gravar definitivo)
+As
+Begin
+    -- Se existir algum registro inserido cujo cliente NÃO tenha assinatura
+    -- ativa na plataforma do filme, barra a inserção inteira.
+    If Exists (
+        Select 1 -- Retorna apenas "1" (verdadeiro) se encontrar qualquer linha que viole a regra (ganho de performance)
+        From Inserted I -- "Inserted" é a tabela virtual que guarda as linhas que estão tentando ser inseridas agora
+        Inner Join Filmes F On F.IdFilme = I.IdFilme -- Cruza com Filmes para descobrir de qual plataforma é o filme tentado
+        Where Not Exists ( -- Procura se NÃO EXISTE uma assinatura válida para este cliente nesta plataforma
+            Select 1
+            From ClientesAssinaturas CA
+            Inner Join Assinaturas A On A.IdAssinatura = CA.IdAssinatura -- Conecta a assinatura do cliente com os dados dela (como a plataforma)
+            Where CA.IdCliente = I.IdCliente -- Garante que estamos olhando para o mesmo cliente que tenta assistir ao filme
+              And A.IdPlataforma = F.IdPlataforma -- Garante que a plataforma assinada é a mesma plataforma do filme
+        )
+    )
+    Begin -- Inicia o bloco de punição se a validação falhar (se o cliente não tiver a assinatura)
+        Throw 50000, 'Cliente não possui assinatura na plataforma deste filme.', 1; -- Entrega a mensagem de erro ao usuário
+        Rollback Transaction -- Cancela a operação inteira. Se tentou inserir 10 linhas e só 1 falhou, todas as 10 são abortadas
+    End
+End
+Go
+
+
+
+Create Trigger Trg_ClientesSeries_ValadarAssinatura_02 -- Criando um novo trigger para garantir segurança nos dados na tabela ClientesSeries
+On ClientesSeries -- Esse Trigger vai funcioonar somente para a tabela ClientesSeries
+After Insert -- Começa a executar assim que existe uma tentativa de inserção
+As 
+Begin 
+    If Exists (
+                Select 1
+                From inserted I
+                Inner Join Series S On S.IdSerie = I.IdSerie -- vendo de qual plataforma é a série
+
+                Where Not Exists (
+                  Select 1 
+                  From ClientesAssinaturas CA 
+                  Inner Join Assinaturas A On A.IdAssinatura = CA.IdAssinatura   -- Conecta a assinatura do cliente e os dados dela no caso a plataforma
+                  Where CA.IdCliente = I.IdCliente  -- garantimos que é o mesmo cliente da assinatura que estamos observando
+                  And A.IdPlataforma = S.IdPlataforma -- garantindo que a plataforma é a mems da serie
+                )
+    
+    )
+    Begin 
+    Throw 50000, 'Cliente não possui assinatura na plataforma dessa série.',1; -- a resposta em caso de erro
+    RollBack Transaction  -- Se der erro cancela todas as inserções 
+    End
+End
+Go
+
+
+-- Agora Populando ClientesSeries De forma aleatória respeitnado o trigger criado para garantir segurança e realidade no Banco de Dados
+
+-- Usando TCE Crio uma tabela virtual
+With ClientesPlataformas As (
+    Select Distinct -- Select distinct serve para pegar somente os diferentes sem repetição
+        CA.IdCliente,
+        A.IdPlataforma
+    From ClientesAssinaturas CA
+    Inner Join Assinaturas A
+        On A.IdAssinatura = CA.IdAssinatura -- usando esse inner join para garantir que a plataforma da assinatura do cliente
+),
+
+-- Criando outra tabela virtual
+ParesValidosSeries As (
+    Select
+        CP.IdCliente,
+        S.IdSerie,
+        Row_Number() Over (Partition By CP.IdCliente Order By NewId()) As Linha
+    From ClientesPlataformas CP
+    Inner Join Series S
+        On CP.IdPlataforma = S.IdPlataforma -- garantir que só vai ter séries das plataformas que os clientes assinam
+)
+
+
+Insert Into ClientesSeries
+    (IdCliente, IdSerie, DataInicioSerie, DataFimSerie, NotaSerieCliente)
+Select
+    IdCliente,
+    IdSerie,
+    DataInicio,
+    DateAdd(Day, Abs(Checksum(NewId())) % 30, DataInicio) As DataFimSerie,  -- NewId como vimos mais acima gera um Id Aleatório Abs Garante que tudo fica Positivo
+    -- o ChekcSum deixa esse Id Com Valor Numérico o DateAdd é o que usamos para subtrair ou somar uma data o day é para dizer que queremos mexer em dias
+    Cast((Abs(Checksum(NewId())) % 101) As Decimal(4,1)) / 10 As NotaSerieCliente -- Adicionando uma nota aleatória para cada cliente 
+From (
+    Select
+        IdCliente,
+        IdSerie,
+        Linha,
+        DateAdd(Day, -Abs(Checksum(NewId())) % 730, GetDate()) As DataInicio -- para garantir que o ínicio de cada cliente vai ser no máximo até 2 anos atrás
+    From ParesValidosSeries
+    Where Linha <= 5 -- Garanti que só vai ter no máximo 5 séries aleatórias por Clientes
+) As Selecionadas
+Go
+
+
+
+With ClientesPlataformas As (
+    Select Distinct
+        CA.IdCliente,
+        A.IdPlataforma
+    From ClientesAssinaturas CA
+    Inner Join Assinaturas A
+        On A.IdAssinatura = CA.IdAssinatura
+),
+ParesValidosFilmes As (
+    Select
+        CP.IdCliente,
+        F.IdFilme,
+        Row_Number() Over (Partition By CP.IdCliente Order By NewId()) As Linha
+    From ClientesPlataformas CP
+    Inner Join Filmes F
+        On CP.IdPlataforma = F.IdPlataforma
+)
+Insert Into ClientesFilmes
+    (IdCliente, IdFilme, NotaFilmeCliente, DataAssistido)
+Select
+    IdCliente,
+    IdFilme,
+    Cast((Abs(Checksum(NewId())) % 101) As Decimal(4,1)) / 10 As NotaFilmeCliente,
+    DateAdd(Day, -Abs(Checksum(NewId())) % 730, GetDate()) As DataAssistido
+From ParesValidosFilmes
+Where Linha <= 4
+Go
+
+
