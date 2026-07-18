@@ -9,7 +9,7 @@ O projeto foi criado com o objetivo de consolidar conhecimentos em modelagem de 
 
 ## Diagrama Entidade-Relacionamento
 
-![DER](../Imagens-DER-BI/DER-StreamingDB-V3.png)
+![DER](../Imagens-DER-BI/DER-StreamingDB_V5.png)
 
 ## Tecnologias Utilizadas
 
@@ -35,15 +35,21 @@ O projeto foi criado com o objetivo de consolidar conhecimentos em modelagem de 
 StreamingDB
 │
 ├── Scripts
-│   ├── 01_Schema_2.sql
-│   ├── 02_Crud_2.sql
-│   ├── 03_Relatorio_Negocio_2.sql
+│   ├── 01_Schema.sql
+│   ├── 02_Crud.sql
+│   ├── 03_Relatorio_Negocio.sql
 │   ├── 04_Relatorio_PowerBI.sql
+│   ├── 05_Relatorio_PowerBI_Clientes.sql
 ├── Imagens-DER-BI
-│   └── DER-StreamingDB-V3.png
+│   └── DER-StreamingDB_V5.png
 │   ├── dashboard_01.png
+│   ├── Dashboard_02.png
+│
+│─── DashBoard
+│   └── 01_Dashboard_StreamingDB.pbix
+│   └── Dashboard-Cliente-02.pbix
 └── Readme
-    └── README.md
+│    └── README.md
 
 ## Business Intelligence & Dashboard (Power BI)
 
@@ -56,3 +62,17 @@ Para complementar a análise técnica dos scripts SQL, foi desenvolvido um paine
 * **Perfil do Consumidor**: Distribuição das formas de pagamento preferidas pelos clientes.
 
 ![Dashboard StreamingDB](../Imagens-DER-BI/dashboard_01.png)
+
+## Dashboard 02 — Comportamento e Consumo dos Clientes
+
+Além da visão financeira e operacional da plataforma, foi desenvolvido um segundo painel no Power BI, focado exclusivamente no comportamento dos clientes: o que eles assistem, como avaliam o conteúdo e quais plataformas concentram o maior volume de consumo.
+
+Enquanto o primeiro dashboard responde "como a empresa está indo", este responde "o que os clientes realmente consomem e preferem" — uma virada de perspectiva de negócio para perspectiva de usuário.
+
+## Indicadores Monitorados:
+* **Ranking de Plataformas por Nota Média**: Posição de cada plataforma com base na avaliação média dos clientes em séries e filmes combinados.
+* **Ranking de Gêneros por Nota Média**: Gêneros mais bem avaliados pelos clientes, cruzando séries e filmes.
+* **Plataforma Mais Consumida**: Ranking por volume total de títulos assistidos (séries + filmes), indicando engajamento de conteúdo.
+* **Plataforma com Maior Faturamento**: Ranking das plataformas por receita gerada em assinaturas.
+
+![Dashboard Clientes StreamingDB](../Imagens-DER-BI/Dashboard_02.png)
