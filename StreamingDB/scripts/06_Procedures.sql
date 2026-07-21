@@ -161,3 +161,69 @@ Begin
 End
 Go
 Exec RelatorioFaturamentoAcomulado
+
+
+--Deletando um procedure 
+Drop Procedure RelatorioFaturamentoAcomulado
+Go
+
+--O time de Customer Success quer analisar os clientes que gastam acima de determinado valor e filtrá-los por forma de pagamento.
+
+Create Procedure RelatorioClientesVIP
+@ValorMinimo Decimal(6,2) = 30.00, 
+@FormaPagamento VarChar(50) = Null
+As
+Begin 
+    Select C.NomeCliente, C.EmailCliente, C.FormaPagamento, A.TipoAssinatura, A.ValorAssinatura
+    From Clientes C
+    Inner Join ClientesAssinaturas CA
+    On C.IdCliente = CA.IdCliente
+    Inner Join Assinaturas A
+    On CA.IdAssinatura = A.IdAssinatura
+    Where A.ValorAssinatura >= @ValorMinimo And
+    (@FormaPagamento Is Null Or C.FormaPagamento = @FormaPagamento) 
+End
+
+-- traz todos os dados da tabela cliente pagam mais de 30,00
+Exec RelatorioClientesVIP 
+
+-- Traz todos os cliente sque pagam com pix e acima de 30,00
+Exec RelatorioClientesVIP @FormaPagamento = 'Pix'
+
+-- Traz todos os clientes que pagam mais de 45,00 e pagam com o cartão de crédito
+Exec RelatorioClientesVIP @ValorMinimo = 45.00, @FormaPagamento = 'Cartão de Crédito'
+
+/* A equipe de produto quer um ranking das produções de cada plataforma usando Dense Rank 
+para que eles saibam qual é o "Top Títulos" por plataforma.*/
+
+Create Procedure RankingPorPlataforma 
+@Conteudo VarChar(10) = 'Serie'
+As
+Begin 
+    If Upper(@Conteudo) Like '%Serie%' --Usando upper em caso do usuário digitar letras maiúsculas ou minúscula
+    -- E Like %Series% Para garantir em casdo de digitar no plural e singular 
+        Select S.TituloSerie, P.NomePlataforma, S.NotaImdb,
+        Dense_Rank () Over (Partition By P.IdPlataforma Order By S.NotaImdb Desc) As RankingPlataforma
+        -- Criando um ranking por plataforma
+        From Series S 
+        Inner Join Plataformas P
+        On P.IdPlataforma = S.IdPlataforma
+    Else Select F.TituloFilme, P.NomePlataforma, F.NotaImdb,
+        Dense_Rank() Over (Partition By P.IdPlataforma Order By F.NotaImdb Desc) RankingPlataforma
+        From Filmes F
+        Inner Join Plataformas P
+        On F.IdPlataforma = P.IdPlataforma
+End
+-- Trazendo Series por Padrão
+Exec RankingPorPlataforma 
+
+-- Trazendo series Digitada
+Exec RankingPorPlataforma @Conteudo = 'SeriEs'
+
+--Trazendo filmes 
+Exec RankingPorPlataforma @Conteudo = 'FilmEs'
+
+
+
+
+
