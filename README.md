@@ -1,86 +1,100 @@
-# João Silva
-
-Bem-vindo ao meu repositório de estudos e projetos em Banco de Dados, SQL e Engenharia de Dados.
-
-Aqui compartilho minha evolução prática na área de tecnologia através de projetos desenvolvidos durante meus estudos.
-
----
-
-## 🎯 Objetivo deste Repositório
-
-Este repositório foi criado para documentar minha jornada de aprendizado em:
-
-* SQL Server
-* Modelagem de Dados
-* Banco de Dados Relacionais
-* Consultas SQL
-* Python para Dados
-* Engenharia de Dados
-
-Cada projeto representa uma etapa da minha evolução técnica, focando na aplicação prática dos conceitos estudados.
-
----
-
-## 📂 Projetos
-
 # StreamingDB
 
-Projeto desenvolvido para praticar modelagem de banco de dados relacional e consultas SQL utilizando SQL Server.
-
-## Sobre o Projeto
-
-A StreamingDB simula um sistema de gerenciamento de séries e filmes de streaming, permitindo o cadastro e a análise de informações relacionadas às produções e suas plataformas.
-O projeto foi criado com o objetivo de consolidar conhecimentos em modelagem de dados, relacionamentos entre tabelas e desenvolvimento de consultas SQL.
-o
-Status: V3 do projeto
+Sistema de banco de dados desenvolvido em SQL Server para simular uma plataforma de streaming, com foco em modelagem relacional, consultas SQL e Business Intelligence.
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+# 🎯 Objetivo
 
-* SQL Server
-* T-SQL
-* Git
-* GitHub
----
-
-## Conceitos Aplicados
-
-* Modelagem Relacional
-* Primary Key
-* Foreign Key
-* Identity
-* Unique
-* Check Constraint
-* Joins
-* Group By
-* Order By
-* Funções de Agregação
-
-## 📚 Atualmente Estudando
-
-* SQL Avançado
-* Modelagem de Dados
-* Python
-* Engenharia de Dados
-* Inglês para Tecnologia
-* Power BI
+O objetivo deste projeto é consolidar conhecimentos em SQL Server por meio do desenvolvimento de um banco de dados completo, aplicando conceitos utilizados no mercado de trabalho, desde a modelagem até a geração de dashboards no Power BI.
 
 ---
 
-## 📈 Objetivo Profissional
+# 🛠 Tecnologias Utilizadas
 
-Busco desenvolver uma base sólida em dados e programação para conquistar minha primeira oportunidade na área de tecnologia, com foco em Banco de Dados e Engenharia de Dados.
+- SQL Server
+- T-SQL
+- Power BI
+- Git
+- GitHub
 
 ---
 
-## 📫 Contato
+# 📚 Conceitos Aplicados
 
-* LinkedIn: (www.linkedin.com/in/joão-lucas-freire-da-silva-a1b139420)
-* Email: (joao.lucas.devsql@gmail.com)
+- Modelagem Relacional
+- Normalização
+- Primary Key e Foreign Key
+- Constraints (CHECK, UNIQUE e IDENTITY)
+- CRUD
+- INNER JOIN e LEFT JOIN
+- GROUP BY e HAVING
+- CASE
+- Subqueries
+- CTE
+- Window Functions
+- Views
+- Procedures
+- Triggers
 
-Obrigado por visitar meu repositório.
+---
 
+# 📁 Estrutura do Projeto
+StreamingDB
+│
+├── DashBoard
+│   ├── 01_DashBoard_StreamingDB.pbix
+│   └── Dashboard-Cliente-02.pbix
+│
+├── Imagens-DER-BI
+│   ├── dashboard_01.png
+│   ├── Dashboard_02.png
+│   └── DER-StreamingDB_V5.png
+│
+├── scripts
+│   ├── 01_Schema.sql
+│   ├── 02_Crud.sql
+│   ├── 03_Relatorio_Negocio.sql
+│   ├── 04_Relatorio_PowerBI.sql
+│   ├── 05_Relatorio_PowerBi_Clientes.sql
+│   └── 06_Procedures.sql
+│
+└── README.md
 
+---
+# 📊 Dashboards
 
+O projeto conta com relatórios interativos desenvolvidos no Power BI utilizando os dados do banco StreamingDB.
 
+### Dashboard 01 - Geral
+
+- 📈 **Evolução de Assinaturas:** Acompanhamento mensal do volume de assinaturas.
+- 💳 **Formas de Pagamento:** Distribuição por Boleto, Cartão de Crédito e Pix.
+- 🎬 **Média de Notas por Gênero:** Avaliação média das séries por gênero.
+- 💰 **Receita por Plataforma:** Faturamento total gerado por plataforma.
+
+![Dashboard Geral](./StreamingDB/Imagens-DER-BI/dashboard_01.png)
+
+---
+
+### Dashboard 02 - Análise de Plataformas e Clientes
+
+- ⭐ **Ranking por Nota Média:** Avaliação das plataformas com base no feedback dos usuários.
+- 📺 **Plataformas mais Consumidas:** Volume de consumo por plataforma.
+- 💵 **Valor Ganho por Plataforma:** Porcentagem de receita e faturamento comparativo.
+- 🏷️ **Ranking de Gêneros:** Avaliação média detalhada por categoria de conteúdo.
+
+![Dashboard Clientes](./StreamingDB/Imagens-DER-BI/Dashboard_02.png)
+---
+
+# 🗺 Modelo Entidade-Relacionamento
+
+![DER](./StreamingDB/Imagens-DER-BI/DER-StreamingDB_V5.png)
+
+---
+
+# 📬 Contato
+
+📧 Email: joao.lucas.devsql@gmail.com
+
+💼 LinkedIn: www.linkedin.com/in/joão-lucas-freire-da-silva-a1b139420
