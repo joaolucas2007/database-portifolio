@@ -29,6 +29,7 @@ O projeto foi criado com o objetivo de consolidar conhecimentos em modelagem de 
 * Funções de Agregação (Sum, Count, Avg, Max)
 * Expressões Condicionais (Case When) e Agregações Condicionais
 * Subqueries (Subconsultas Independentes e Correlacionadas)
+* procedures
 
 ## Estrutura do Projeto
 
@@ -40,6 +41,7 @@ StreamingDB
 │   ├── 03_Relatorio_Negocio.sql
 │   ├── 04_Relatorio_PowerBI.sql
 │   ├── 05_Relatorio_PowerBI_Clientes.sql
+│   ├── 06_procedures.sql
 ├── Imagens-DER-BI
 │   └── DER-StreamingDB_V5.png
 │   ├── dashboard_01.png
